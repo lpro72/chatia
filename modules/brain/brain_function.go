@@ -44,4 +44,17 @@ func Exec(command string, brainName string, extraVar ...any) string {
     return ""
 }
 
+/*******************
+* Unittest
+*******************/
+func Unittest() {
+    for _, brainContext := range g_Brain {
+        if brainContext != nil {
+            if brainContext.Unittest != nil {
+                brainContext.Unittest()
+            }
+        }
+    }
+}
+
 

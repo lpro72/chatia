@@ -16,4 +16,10 @@ func DumpMemoryChess() {
     error.PrintMsgFromErrorCode(error.WARNING_DEBUG_NOT_SET)
 }
 
+/*******************
+* UnittestChess
+*******************/
+func UnittestChess() {
+}
+
 

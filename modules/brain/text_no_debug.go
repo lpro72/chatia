@@ -16,4 +16,10 @@ func DumpMemoryText() {
     error.PrintMsgFromErrorCode(error.WARNING_DEBUG_NOT_SET)
 }
 
+/*******************
+* UnittestText
+*******************/
+func UnittestText() {
+}
+
 

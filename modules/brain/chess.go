@@ -36,6 +36,7 @@ func ChessFactory(brain *BrainStruct)  {
     brain.Learn = LearnChess
     brain.DumpMemory = DumpMemoryChess
     brain.Exec = ExecChess
+    brain.Unittest = UnittestChess
 
     fmt.Println("***** Exit ChessFactory *****")
 }
@@ -59,6 +60,10 @@ func init() {
 func ExecChess(command string, extraVar ...any) string {
     fmt.Println("***** Enter ExecChess *****")
 
+    fmt.Println(command)
+    for index, value := range extraVar {
+        fmt.Printf("Index: %d, Value: %s\n", index, value)
+    }
     fmt.Println("***** Exit ExecChess *****")
 
     return ""

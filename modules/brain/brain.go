@@ -7,6 +7,7 @@ type BrainStruct struct {
     FirstCell any
     Learn func(data []byte, firstCell any)
     Exec func(command string, extraVar ...any) string
+    Unittest func()
 
     // Debug only
     DumpMemory func()

@@ -36,6 +36,7 @@ func TextFactory(brain *BrainStruct)  {
     brain.Learn = LearnTextFromBrain
     brain.DumpMemory = DumpMemoryText
     brain.Exec = ExecText
+    brain.Unittest = UnittestText
 }
 
 /*******************
