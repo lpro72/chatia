@@ -29,10 +29,10 @@ func main() {
     // Launch as a daemon
     if context.IsDaemon {
         ExecAsDaemon(context)
-        os.Exit(error.SUCCESS)
     } else if context.LaunchUnitTest {
         brain.Unittest()
-        os.Exit(error.SUCCESS)
+    } else {
+        ExecShell(context)
     }
 
     os.Exit(error.SUCCESS)
@@ -45,8 +45,5 @@ func parseArguments(context *ContextStruct) {
     flag.BoolVar(&context.IsDaemon, "daemon", false, "Launch as a daemon") 
     flag.BoolVar(&context.LaunchUnitTest, "unittest", false, "Launch unittest")
     flag.Parse()
-}
-
-func ExecAsDaemon(context *ContextStruct) {
 }
 

@@ -32,33 +32,70 @@ const ERROR_BRAIN int                       = 10000
 const ERROR_MSG int                         = 20000
 const ERROR_DEBUG int                       = 30000
 const ERROR_COMMAND int                     = 40000
+const ERROR_SERVER int                      = 50000
+const ERROR_CLIENT int                      = 60000
 
 // Error type
 const ERROR_NOT_FOUND                       = 1
 const ERROR_EMPTY                           = 2
 const ERROR_INVALID_DATA                    = 3
 const ERROR_NOT_SET                         = 4
+const ERROR_NO_NETWORK                      = 5
+const ERROR_NOT_CONNECT                     = 6
+const ERROR_WRITE                           = 7
+const ERROR_READ                            = 8
 
-// Warning message
+// Warning code
 const WARNING_BRAIN_EMPTY int               = WARNING + ERROR_BRAIN + ERROR_EMPTY
 const WARNING_DEBUG_NOT_SET int             = WARNING + ERROR_DEBUG + ERROR_NOT_SET
 const WARNING_COMMAND_NOT_FOUND int         = WARNING + ERROR_COMMAND + ERROR_NOT_FOUND
+const WARNING_SERVER_NOT_CONNECT int        = WARNING + ERROR_SERVER + ERROR_NOT_CONNECT
 
-// Error message
+// Error code
 const ERROR_MSG_NOT_FOUND int               = ERROR + ERROR_MSG + ERROR_NOT_FOUND
+const ERROR_SERVER_WRITE int                = ERROR + ERROR_SERVER + ERROR_WRITE
+const ERROR_SERVER_READ int                 = ERROR + ERROR_SERVER + ERROR_READ
+const ERROR_CLIENT_WRITE int                = ERROR + ERROR_CLIENT + ERROR_WRITE
+const ERROR_CLIENT_READ int                 = ERROR + ERROR_CLIENT + ERROR_READ
+
+// Error critical code
 const ERROR_CRITICAL_BRAIN_NOT_FOUND int    = ERROR_CRITICAL + ERROR_BRAIN + ERROR_NOT_FOUND
+
+// Error fatal code
 const ERROR_FATAL_BRAIN_INVALID int         = ERROR_FATAL + ERROR_BRAIN + ERROR_INVALID_DATA
+const ERROR_FATAL_SERVER_NO_NETWORK int     = ERROR_FATAL + ERROR_SERVER + ERROR_NO_NETWORK
+const ERROR_FATAL_CLIENT_INVALID_DATA int   = ERROR_FATAL + ERROR_CLIENT + ERROR_INVALID_DATA
+const ERROR_FATAL_CLIENT_NOT_CONNECT int    = ERROR_FATAL + ERROR_CLIENT + ERROR_NOT_CONNECT
 
 /*******************
 * Error string
 *******************/
 var errorString = map[int]string{
-    WARNING_BRAIN_EMPTY:                    "The brain '%s' is empty",
-    WARNING_DEBUG_NOT_SET:                  "The debug tags not set",
-    WARNING_COMMAND_NOT_FOUND:              "The command '%s' is not found",
-    ERROR_MSG_NOT_FOUND:                    "The error message is not found",
-    ERROR_CRITICAL_BRAIN_NOT_FOUND:         "The brain '%s' context is not found",
-    ERROR_FATAL_BRAIN_INVALID:              "The brain is not consistent"}
+    // Brain
+    WARNING_BRAIN_EMPTY:                    "The brain '%s' is empty.",
+    ERROR_FATAL_BRAIN_INVALID:              "The brain is not consistent.",
+    ERROR_CRITICAL_BRAIN_NOT_FOUND:         "The brain '%s' context is not found.",
+
+    // Debug
+    WARNING_DEBUG_NOT_SET:                  "The debug tags not set.",
+
+    // Command Line
+    WARNING_COMMAND_NOT_FOUND:              "The command '%s' is not found.",
+
+    // Server
+    WARNING_SERVER_NOT_CONNECT:             "The connection to the daemon was fail.\n%s",
+    ERROR_SERVER_WRITE:                     "Error when writing data to the client.\n%s",
+    ERROR_SERVER_READ:                      "Error when reading data from the client.\n%s",
+    ERROR_FATAL_SERVER_NO_NETWORK:          "Cannot open network connection (%s).\n%s",
+
+    // Client
+    ERROR_CLIENT_WRITE:                     "Error when writing data to the server.\n%s",
+    ERROR_CLIENT_READ:                      "Error when reading data from the server.\n%s",
+    ERROR_FATAL_CLIENT_INVALID_DATA:        "Cannot resolve TCP vonnection to the server (%s).\n%s",
+    ERROR_FATAL_CLIENT_NOT_CONNECT:         "Cannot connect to the server.\n%s",
+
+    // Message
+    ERROR_MSG_NOT_FOUND:                    "The error message is not found."}
 
 /*******************
 * GetStrFromErrorCode

@@ -3,6 +3,13 @@
 package cell
 
 /*******************
+* Import
+*******************/
+import (
+        "chatia/modules/error"
+)
+
+/*******************
 * DumpCell
 *******************/
 func DumpCell(currentCell *CellStruct, indentation []byte) {
