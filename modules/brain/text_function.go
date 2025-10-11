@@ -1,4 +1,4 @@
-//go:build Text
+//go:build !NoText
 
 package brain
 
@@ -9,8 +9,6 @@ import (
 	"chatia/modules/brain/cell"
 	"chatia/modules/errcode"
 	"fmt"
-	"math/rand"
-	"time"
 	"unicode"
 )
 
@@ -19,9 +17,10 @@ import (
 *******************/
 // Learn some texte
 func ExecText(command string, extraVar ...any) string {
-	if command == "GetRandomWordFromWordCell" {
+	switch command {
+	case "GetRandomWordFromWordCell":
 		return GetRandomWordFromWordCell()
-	} else if command == "GetRandomWordFromLetterCell" {
+	case "GetRandomWordFromLetterCell":
 		return GetRandomWordFromLetterCell()
 	}
 
@@ -138,7 +137,6 @@ func GetRandomWordFromWordCell() string {
 
 	brain := GetBrainContext("Text")
 	textData := cell.GetDataFromTextCell(brain.GetFirstCell())
-	rand.Seed(time.Now().UnixNano())
 	return cell.GetRandowWordFromWordCells(textData.WordCell.GetFirstChildCell(), textData.Count)
 }
 
@@ -153,7 +151,6 @@ func GetRandomWordFromLetterCell() string {
 
 	brain := GetBrainContext("Text")
 	textData := cell.GetDataFromTextCell(brain.GetFirstCell())
-	rand.Seed(time.Now().UnixNano())
 	return string(cell.GetRandowWordFromLetterCell(textData.LetterCell, textData.Count))
 }
 

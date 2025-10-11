@@ -4,15 +4,10 @@ package brain
 * Import
 *******************/
 import (
-	"fmt"
-	"io"
 	"os"
-	"path/filepath"
 	"sync"
 
 	"chatia/modules/brain/cell"
-	"chatia/modules/errcode"
-	"chatia/modules/utils"
 )
 
 /*******************
@@ -41,7 +36,6 @@ type s_Brain struct {
 
 	// Data
 	firstCell cell.I_CellManagement
-	mutex     sync.RWMutex
 
 	// Debug only
 	dumpMemory func()
@@ -111,7 +105,21 @@ func (brain *s_Brain) CallDumpMemoryFunction() {
 /*******************
 * Globals Varables
 *******************/
-var g_Brain *s_BrainConfig = createBrain()
+var g_MainBrain *s_BrainConfig = nil
+var g_Brain *s_BrainConfig = nil
+var g_RegisterBrainContext map[string]func(I_Brain) = make(map[string]func(I_Brain))
+
+/*******************
+* addNewContext
+*******************/
+func addNewContext(brain *s_BrainConfig, name string) *s_Brain {
+	brain.mutex.Lock()
+	defer brain.mutex.Unlock()
+	brainContext := new(s_Brain)
+	brain.contextList[name] = brainContext
+
+	return brainContext
+}
 
 /*******************
 * createBrain
@@ -120,163 +128,42 @@ func createBrain() *s_BrainConfig {
 	brain := new(s_BrainConfig)
 	brain.contextList = make(map[string]*s_Brain)
 
-	exec, err := os.Executable()
-	if err != nil {
-		errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_PROG_NOT_FOUND)
-		panic(err)
+	brain.mutex = sync.RWMutex{}
+	brain.fileHandle = nil
+	brain.mainDirectory = ""
+	brain.savesDirectory = ""
+
+	for name, factory := range g_RegisterBrainContext {
+		brainContext := addNewContext(brain, name)
+		factory(brainContext)
 	}
-	brain.mainDirectory = filepath.Dir(exec)
-	brain.savesDirectory = filepath.Join(brain.mainDirectory, "save")
 
 	return brain
 }
 
 /*******************
-* addNewContext
+* registerBrainContext
 *******************/
-func addNewContext(name string) *s_Brain {
+func registerBrainContext(name string, factory func(I_Brain)) {
+	g_RegisterBrainContext[name] = factory
+}
+
+/*******************
+* UseTemporaryBrain
+*******************/
+func UseTemporaryBrain() {
 	g_Brain.mutex.Lock()
 	defer g_Brain.mutex.Unlock()
-	brainContext := new(s_Brain)
-	g_Brain.contextList[name] = brainContext
 
-	return brainContext
+	g_Brain = createBrain()
 }
 
 /*******************
-* init
+* UseMainBrain
 *******************/
-func init() {
-	readConfigFile()
-	managementBrainContext := CreateBrainContext("__Management__", nil)
-	managementBrainContext.SetDumpMemoryFunction(cell.ManagementDumpMemory)
-}
-
-/*******************
-* initConfigFile
-*******************/
-func initConfigFile() {
-	var err error
-	confFile := filepath.Join(g_Brain.savesDirectory, "context.brn")
-
-	// Create or truncate the configuration file
-	g_Brain.fileHandle, err = os.OpenFile(confFile, os.O_CREATE|os.O_RDWR, 0600)
-	if err != nil {
-		errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_CREATE)
-		os.Exit(errcode.ERROR_FATAL_CONFIG_CREATE)
-	}
-	fileHandle := g_Brain.fileHandle
-
-	// Write file version
-	_, err = utils.FileWriteUint32(fileHandle, 0, 0x62726e01)
-	if err != nil {
-		errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_WRITE)
-		os.Exit(errcode.ERROR_FATAL_CONFIG_WRITE)
-	}
-}
-
-/*******************
-* readConfigFile
-*******************/
-func readConfigFile() {
-	err := os.MkdirAll(g_Brain.savesDirectory, 0700)
-	fmt.Println("Creating saves directory:", g_Brain.savesDirectory)
-	if err != nil {
-		errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_CREATE)
-		os.Exit(errcode.ERROR_FATAL_CONFIG_OPEN)
-	}
-
-	confFile := filepath.Join(g_Brain.savesDirectory, "context.brn")
-
-	// Open the configuration file
-	g_Brain.fileHandle, err = os.OpenFile(confFile, os.O_RDWR, 0)
-	if err != nil {
-		initConfigFile()
-	}
-	fileHandle := g_Brain.fileHandle
-
-	// Read file version
-	var version uint32
-	dataOffset, err := utils.FileReadUint32(fileHandle, 0, &version)
-	if err != nil {
-		errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_READ)
-		os.Exit(errcode.ERROR_FATAL_CONFIG_READ)
-	}
-	if version != 0x62726e01 {
-		errcode.PrintMsgFromErrorCode(errcode.ERROR_CRITICAL_CONFIG_INVALID_DATA)
-		os.Exit(errcode.ERROR_CRITICAL_CONFIG_INVALID_DATA)
-	}
-
-	for {
-		// Read the brain context name
-		var name string
-		dataOffset, err = utils.FileReadString(fileHandle, dataOffset, &name)
-		if err != nil {
-			fmt.Println("Error reading context.brn:", err)
-			if err == io.EOF {
-				break
-			}
-			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_READ)
-			os.Exit(errcode.ERROR_FATAL_CONFIG_READ)
-		}
-
-		// Create the brain context
-		brainContext := addNewContext(name)
-		if brainContext == nil {
-			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_PROG_MEMORY_ALLOC)
-			os.Exit(errcode.ERROR_FATAL_PROG_MEMORY_ALLOC)
-		}
-	}
-}
-
-/*******************
-* GetBrainContext
-*******************/
-func GetBrainContext(name string) I_Brain {
-	g_Brain.mutex.RLock()
-	defer g_Brain.mutex.RUnlock()
-	brainContext, ok := g_Brain.contextList[name]
-	if !ok || brainContext == nil {
-		return nil
-	}
-	return brainContext
-}
-
-/*******************
-* CreateBrainContext
-*******************/
-func CreateBrainContext(name string, factory func(I_Brain)) I_Brain {
-	brainContext := GetBrainContext(name)
-
-	if brainContext == nil {
-		addNewContext(name)
-		_, err := utils.FileWriteString(g_Brain.fileHandle, -1, name)
-		if err != nil {
-			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_WRITE)
-			return nil
-		}
-
-		brainContext = GetBrainContext(name)
-		if brainContext == nil {
-			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_PROG_MEMORY_ALLOC)
-			return nil
-		}
-	}
-
-	// Call the factory function to initialize the brain context
-	if factory != nil {
-		factory(brainContext)
-	}
-
-	return brainContext
-}
-
-// Close ferme le handle du fichier de configuration de façon thread-safe.
-func Close() {
+func UseMainBrain() {
 	g_Brain.mutex.Lock()
 	defer g_Brain.mutex.Unlock()
-	if g_Brain.fileHandle != nil {
-		_ = g_Brain.fileHandle.Close()
-		g_Brain.fileHandle = nil
-	}
+
+	g_Brain = g_MainBrain
 }

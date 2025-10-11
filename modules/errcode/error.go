@@ -61,6 +61,7 @@ const WARNING_COMMAND_NOT_FOUND int = WARNING + ERROR_COMMAND + ERROR_NOT_FOUND
 const WARNING_SERVER_NOT_CONNECT int = WARNING + ERROR_SERVER + ERROR_NOT_CONNECT
 const WARNING_CELL_INVALID_DATA int = WARNING + ERROR_CELL + ERROR_INVALID_DATA
 const WARNING_CELL_NOT_SET int = WARNING + ERROR_CELL + ERROR_NOT_SET
+const WARNING_CONFIG_NOT_FOUND int = WARNING + ERROR_CONFIG + ERROR_NOT_FOUND
 
 // Error code
 const ERROR_MSG_NOT_FOUND int = ERROR + ERROR_MSG + ERROR_NOT_FOUND
@@ -123,6 +124,7 @@ var errorString = map[int]string{
 	WARNING_CELL_NOT_SET:      "Nil cell",
 
 	// Configuration
+	WARNING_CONFIG_NOT_FOUND:           "The brain name '%s' is in configuration file but not in the brain.",
 	ERROR_CRITICAL_CONFIG_INVALID_DATA: "The configuration file have invalid data",
 	ERROR_FATAL_CONFIG_OPEN:            "Cannot open the configuration file",
 	ERROR_FATAL_CONFIG_CREATE:          "Cannot create the configuration file",

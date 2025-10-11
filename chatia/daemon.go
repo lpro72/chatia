@@ -33,7 +33,8 @@ const (
 var daemonState int32 = DAEMON_STOP
 var daemonListener net.Listener
 var daemonListenerMutex sync.Mutex
-var connectionCount sync.WaitGroup
+var connectionList sync.WaitGroup
+var activeConnections int32 = 0
 
 /*******************
 * setDaemonState
@@ -97,14 +98,16 @@ func ExecAsDaemon() int {
 			}
 			continue
 		}
-		connectionCount.Add(1)
+		connectionList.Add(1)
 		go func(c net.Conn) {
-			defer connectionCount.Done()
+			defer connectionList.Done()
+			defer atomic.AddInt32(&activeConnections, -1)
+			atomic.AddInt32(&activeConnections, 1)
 			handleConnection(c)
 		}(conn)
 	}
 
-	connectionCount.Wait()
+	connectionList.Wait()
 	return errcode.SUCCESS
 }
 
@@ -141,15 +144,31 @@ func handleConnection(conn net.Conn) {
 			break
 		} else if command == "exit" {
 			break
-		} else if strings.HasPrefix(command, "use ") {
-			newBrainNameUsed := strings.TrimPrefix(command, "use ")
-			newBrainContext := brain.GetBrainContext(newBrainNameUsed)
-			if newBrainContext == nil {
-				returnMsg = "Invalid brain name"
-			} else {
-				brainNameUsed = newBrainNameUsed
-				brainContext = newBrainContext
-				returnMsg = "Done"
+		} else if newBrainNameUsed, ok := strings.CutPrefix(command, "use "); ok {
+			switch newBrainNameUsed {
+			case "new brain":
+				count := atomic.LoadInt32(&activeConnections)
+				returnMsg = fmt.Sprintf("Cannot create a new brain while there are %d active connections", count)
+				if count < 2 {
+					brain.UseTemporaryBrain()
+					returnMsg = "New brain created and used"
+					brainNameUsed = ""
+					brainContext = nil
+				}
+			case "main brain":
+				brain.UseMainBrain()
+				returnMsg = "Main brain used"
+				brainNameUsed = ""
+				brainContext = nil
+			default:
+				newBrainContext := brain.GetBrainContext(newBrainNameUsed)
+				if newBrainContext == nil {
+					returnMsg = "Invalid brain name"
+				} else {
+					brainNameUsed = newBrainNameUsed
+					brainContext = newBrainContext
+					returnMsg = "Done"
+				}
 			}
 		} else if brainContext == nil {
 			returnMsg = "You need to use a Brain"

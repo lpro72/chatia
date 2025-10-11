@@ -33,13 +33,15 @@ func main() {
 		os.Exit(exitCode)
 	}
 
+	brain.InitBrain()
+
 	// capturer signaux pour shutdown propre
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
 		<-sigs
 		// nettoyage avant arrêt forcé
-		brain.Close()
+		brain.CloseBrain()
 		os.Exit(0)
 	}()
 
@@ -54,7 +56,7 @@ func main() {
 	}
 
 	// Exit
-	brain.Close()
+	brain.CloseBrain()
 	os.Exit(exitCode)
 }
 

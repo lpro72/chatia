@@ -1,4 +1,4 @@
-//go:build Text
+//go:build !NoText
 
 package brain
 
@@ -24,5 +24,5 @@ func TextFactory(brain I_Brain) {
 * init
 *******************/
 func init() {
-	CreateBrainContext("Text", TextFactory)
+	registerBrainContext("Text", TextFactory)
 }

@@ -1,4 +1,4 @@
-//go:build Chess
+//go:build !NoChess
 
 package brain
 
@@ -46,7 +46,7 @@ func ChessFactory(brain I_Brain) {
 func init() {
 	fmt.Println("***** Enter init *****")
 
-	CreateBrainContext("Chess", ChessFactory)
+	registerBrainContext("Chess", ChessFactory)
 
 	fmt.Println("***** Exit init *****")
 }

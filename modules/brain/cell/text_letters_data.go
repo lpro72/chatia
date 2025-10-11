@@ -1,4 +1,4 @@
-//go:build Text
+//go:build !NoText
 
 package cell
 
