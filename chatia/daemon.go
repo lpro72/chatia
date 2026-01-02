@@ -11,8 +11,9 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"chatia/modules/brain"
+	"chatia/modules/data"
 	"chatia/modules/errcode"
+	"chatia/modules/interfaces"
 )
 
 /*******************
@@ -72,9 +73,9 @@ func getDaemonListener() net.Listener {
 }
 
 /*******************
-* ExecAsDaemon
+* execAsDaemon
 *******************/
-func ExecAsDaemon() int {
+func execAsDaemon() int {
 	l, err := net.Listen(TYPE, HOST+":"+PORT)
 	if err != nil {
 		errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_SERVER_NO_NETWORK, HOST+":"+PORT, err.Error())
@@ -121,12 +122,14 @@ func handleConnection(conn net.Conn) {
 	defer conn.Close()
 
 	connReader := bufio.NewReader(conn)
-	var brainContext brain.I_Brain = nil
+	var brainConfig interfaces.I_BrainConfig = data.UseMainBrain()
+	var brainContext interfaces.I_BrainContext = nil
 	var brainNameUsed string = "None"
 	var returnMsg string
 	fmt.Println("Client connected")
 
-	for {
+	waitForConnection := true
+	for waitForConnection {
 		returnMsg = "Command not found"
 
 		received, err := connReader.ReadString('\n')
@@ -136,48 +139,74 @@ func handleConnection(conn net.Conn) {
 		}
 
 		command := strings.TrimSpace(received)
-		fmt.Println(command)
+		parts := strings.SplitN(command, " ", 2)
+		cmd := parts[0]
+		args := ""
+		if len(parts) >= 2 {
+			args = parts[1]
+		}
 
-		if command == "stop" {
+		switch cmd {
+		case "stop":
 			setDaemonState(DAEMON_STOP)
 			setDaemonListener(nil)
-			break
-		} else if command == "exit" {
-			break
-		} else if newBrainNameUsed, ok := strings.CutPrefix(command, "use "); ok {
+			waitForConnection = false
+			returnMsg = "Server is stopping"
+		case "exit":
+			waitForConnection = false
+			returnMsg = "Goodbye"
+		case "dumpmemory":
+			if brainContext == nil {
+				returnMsg = "You need to use a Brain"
+			} else {
+				brainContext.CallDumpMemoryFunction()
+				returnMsg = "Done"
+			}
+		case "learn":
+			if brainContext == nil {
+				returnMsg = "You need to use a Brain"
+			} else {
+				brainContext.CallLearnFunction([]byte(args))
+			}
+			returnMsg = "Done"
+		case "exec":
+			if brainContext == nil {
+				returnMsg = "You need to use a Brain"
+			} else {
+				brainContext.CallExecFunction(args)
+			}
+			returnMsg = "Done"
+		case "use":
+			newBrainNameUsed := strings.TrimSpace(args)
 			switch newBrainNameUsed {
 			case "new brain":
 				count := atomic.LoadInt32(&activeConnections)
 				returnMsg = fmt.Sprintf("Cannot create a new brain while there are %d active connections", count)
 				if count < 2 {
-					brain.UseTemporaryBrain()
-					returnMsg = "New brain created and used"
+					brainConfig = data.UseTemporaryBrain()
+					returnMsg = "New brain create and ready to be use"
 					brainNameUsed = ""
 					brainContext = nil
 				}
 			case "main brain":
-				brain.UseMainBrain()
+				brainConfig = data.UseMainBrain()
 				returnMsg = "Main brain used"
 				brainNameUsed = ""
 				brainContext = nil
 			default:
-				newBrainContext := brain.GetBrainContext(newBrainNameUsed)
+				newBrainContext := brainConfig.GetBrainContextManagement().GetBrainContext(newBrainNameUsed)
 				if newBrainContext == nil {
-					returnMsg = "Invalid brain name"
+					returnMsg = fmt.Sprintf("%s is an invalid brain name", newBrainNameUsed)
 				} else {
 					brainNameUsed = newBrainNameUsed
 					brainContext = newBrainContext
 					returnMsg = "Done"
 				}
 			}
-		} else if brainContext == nil {
-			returnMsg = "You need to use a Brain"
-		} else if strings.HasPrefix(command, "unittest") {
-			brainContext.CallUnittestFunction()
-			returnMsg = "Done"
-		} else if strings.HasPrefix(command, "dumpmemory") {
-			brainContext.CallDumpMemoryFunction()
-			returnMsg = "Done"
+		default:
+			if brainContext == nil {
+				returnMsg = "You need to use a Brain"
+			}
 		}
 
 		_, err = fmt.Fprintf(conn, "(%s) : %s\n", brainNameUsed, returnMsg)
@@ -188,5 +217,4 @@ func handleConnection(conn net.Conn) {
 	}
 
 	fmt.Println("Client disconnected")
-
 }

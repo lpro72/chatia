@@ -39,6 +39,7 @@ const ERROR_SERVER int = 50000
 const ERROR_CLIENT int = 60000
 const ERROR_CELL int = 70000
 const ERROR_CONFIG int = 80000
+const ERROR_FILE int = 90000
 
 // Error type
 const ERROR_NOT_FOUND = 1
@@ -53,6 +54,7 @@ const ERROR_CREATE = 9
 const ERROR_WRITE = 10
 const ERROR_READ = 11
 const ERROR_MEMORY_ALLOC = 12
+const ERROR_NOT_INITIALIZED = 13
 
 // Warning code
 const WARNING_BRAIN_EMPTY int = WARNING + ERROR_BRAIN + ERROR_EMPTY
@@ -79,6 +81,7 @@ const ERROR_CRITICAL_CONFIG_INVALID_DATA int = ERROR_CRITICAL + ERROR_CONFIG + E
 const ERROR_FATAL_PROG_NOT_FOUND int = ERROR_FATAL + ERROR_PROG + ERROR_NOT_FOUND
 const ERROR_FATAL_PROG_MEMORY_ALLOC int = ERROR_FATAL + ERROR_PROG + ERROR_MEMORY_ALLOC
 const ERROR_FATAL_BRAIN_INVALID int = ERROR_FATAL + ERROR_BRAIN + ERROR_INVALID_DATA
+const ERROR_FATAL_BRAIN_NOT_INITIALIZED int = ERROR_FATAL + ERROR_BRAIN + ERROR_NOT_INITIALIZED
 const ERROR_FATAL_SERVER_NO_NETWORK int = ERROR_FATAL + ERROR_SERVER + ERROR_NO_NETWORK
 const ERROR_FATAL_CLIENT_INVALID_DATA int = ERROR_FATAL + ERROR_CLIENT + ERROR_INVALID_DATA
 const ERROR_FATAL_CLIENT_NOT_CONNECT int = ERROR_FATAL + ERROR_CLIENT + ERROR_NOT_CONNECT
@@ -86,6 +89,8 @@ const ERROR_FATAL_CONFIG_CREATE int = ERROR_FATAL + ERROR_CONFIG + ERROR_CREATE
 const ERROR_FATAL_CONFIG_WRITE int = ERROR_FATAL + ERROR_CONFIG + ERROR_WRITE
 const ERROR_FATAL_CONFIG_OPEN int = ERROR_FATAL + ERROR_CONFIG + ERROR_OPEN
 const ERROR_FATAL_CONFIG_READ int = ERROR_FATAL + ERROR_CONFIG + ERROR_READ
+const ERROR_FATAL_FILE_OPEN int = ERROR_FATAL + ERROR_FILE + ERROR_OPEN
+const ERROR_FATAL_FILE_READ int = ERROR_FATAL + ERROR_FILE + ERROR_READ
 
 /*******************
 * Error string
@@ -96,16 +101,17 @@ var errorString = map[int]string{
 	ERROR_FATAL_PROG_MEMORY_ALLOC: "Cannot allocate memory for the program",
 
 	// Brain
-	WARNING_BRAIN_EMPTY:            "The brain '%s' is empty.",
-	ERROR_FATAL_BRAIN_INVALID:      "The brain is not consistent.",
-	ERROR_CRITICAL_BRAIN_NOT_FOUND: "The brain '%s' context is not found.",
+	WARNING_BRAIN_EMPTY:               "The brain '%s' is empty.",
+	ERROR_CRITICAL_BRAIN_NOT_FOUND:    "The brain '%s' context is not found.",
+	ERROR_FATAL_BRAIN_INVALID:         "The brain is not consistent.",
+	ERROR_FATAL_BRAIN_NOT_INITIALIZED: "The brain is not initialized.",
 
 	// Debug
 	WARNING_DEBUG_NOT_SET: "The debug tags not set.",
 
 	// Command Line
 	WARNING_COMMAND_NOT_FOUND:           "The command '%s' is not found.",
-	ERROR_CRITICAL_COMMAND_INVALID_DATA: "The command line have incompatible arguments. (%s, %s).",
+	ERROR_CRITICAL_COMMAND_INVALID_DATA: "The command line have incompatible arguments. (%s).",
 
 	// Server
 	WARNING_SERVER_NOT_CONNECT:    "The connection to the daemon was fail.\n%s",
@@ -130,6 +136,10 @@ var errorString = map[int]string{
 	ERROR_FATAL_CONFIG_CREATE:          "Cannot create the configuration file",
 	ERROR_FATAL_CONFIG_WRITE:           "Cannot write to the configuration file",
 	ERROR_FATAL_CONFIG_READ:            "Cannot read the configuration file",
+
+	// File
+	ERROR_FATAL_FILE_OPEN: "Cannot open the file '%s'.\n%s",
+	ERROR_FATAL_FILE_READ: "Cannot read the file '%s'.\n%s",
 
 	// Message
 	ERROR_MSG_NOT_FOUND: "The error message is not found."}

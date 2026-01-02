@@ -4,66 +4,39 @@ package brain
 * Import
 *******************/
 import (
-	"os"
-	"path/filepath"
-
-	"chatia/modules/brain/cell"
-	"chatia/modules/errcode"
+	"chatia/modules/data"
+	"chatia/modules/interfaces"
 )
 
 /*******************
-* ManagementFactory
+* BrainManagement_Register
 *******************/
-func ManagementFactory(brain I_Brain) {
-	brain.SetDumpMemoryFunction(cell.ManagementDumpMemory)
+func BrainManagement_Register() {
+	data.BrainContextManagement_RegisterNewContext("__Management__", BrainManagement_ManagementFactory)
 }
 
 /*******************
-* init
+* BrainManagement_ManagementFactory
 *******************/
-func init() {
-	registerBrainContext("__Management__", ManagementFactory)
+func BrainManagement_ManagementFactory(brainContext interfaces.I_BrainContext) {
+	brainContext.SetDumpMemoryFunction(ManagementDumpMemory)
 }
 
 /*******************
-* initBrain
+* ManagementDumpMemory
 *******************/
-func InitBrain() {
-	g_MainBrain = createBrain()
-	g_Brain = g_MainBrain
+func ManagementDumpMemory(brainContext interfaces.I_BrainContext) {
+	println("brain_management/ManagementDumpMemory")
+	// 	brainConfig := brainContext.GetBrainConfig()
+	// 	brainCellManagement := brainConfig.GetCellGroupManagement()
+	// 	fmt.Printf("Number of group %d\n", brainCellManagement.GetCellGroupsCount())
+	// 	for i := 0; i < brainCellManagement.GetCellGroupsCount(); i++ {
+	// 		fmt.Printf("Group id %d\nCell count %d\n", i, brainCellManagement.GetCellCount(i))
+	// 	}
 
-	exec, err := os.Executable()
-	if err != nil {
-		errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_PROG_NOT_FOUND)
-		panic(err)
-	}
-	g_MainBrain.mainDirectory = filepath.Dir(exec)
-	g_MainBrain.savesDirectory = filepath.Join(g_MainBrain.mainDirectory, "save")
-
-	readConfigFile()
-}
-
-/*******************
-* CloseBrain
-*******************/
-func CloseBrain() {
-	g_MainBrain.mutex.Lock()
-	defer g_MainBrain.mutex.Unlock()
-	if g_MainBrain.fileHandle != nil {
-		_ = g_MainBrain.fileHandle.Close()
-		g_MainBrain.fileHandle = nil
-	}
-}
-
-/*******************
-* GetBrainContext
-*******************/
-func GetBrainContext(name string) I_Brain {
-	g_Brain.mutex.RLock()
-	defer g_Brain.mutex.RUnlock()
-	brainContext, ok := g_Brain.contextList[name]
-	if !ok || brainContext == nil {
-		return nil
-	}
-	return brainContext
+	//	for i := 1; i <= brainCellManagement.GetCellCount(-1); i++ {
+	//		cell := brainCellManagement.GetCellFromID(i)
+	//		fmt.Printf("Cell id %v - ", cell)
+	//		fmt.Printf("%s(%p) - %v\n", data.CellType_GetTypeName(cell.GetCellType()), cell, cell)
+	//	}
 }

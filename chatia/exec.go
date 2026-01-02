@@ -14,9 +14,9 @@ import (
 )
 
 /*******************
-* execShell
+* execFile
 *******************/
-func execShell() int {
+func execFile(filePath string) int {
 	tcpServer, err := net.ResolveTCPAddr(TYPE, HOST+":"+PORT)
 	if err != nil {
 		errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CLIENT_INVALID_DATA, HOST+":"+PORT, err.Error())
@@ -30,17 +30,33 @@ func execShell() int {
 	}
 	defer conn.Close()
 
-	readerStdin := bufio.NewReader(os.Stdin)
-	connReader := bufio.NewReader(conn)
+	// Read the file to execute
+	file, err := os.Open(filePath)
+	if err != nil {
+		errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_FILE_OPEN, filePath, err.Error())
+		return errcode.ERROR_FATAL_FILE_OPEN
+	}
+	defer file.Close()
 
+	fileReader := bufio.NewReader(file)
+	connReader := bufio.NewReader(conn)
 	for {
-		fmt.Print("Enter command: ")
-		command, err := readerStdin.ReadString('\n')
+		// Read a line from the file
+		line, err := fileReader.ReadString('\n')
 		if err != nil {
-			errcode.PrintMsgFromErrorCode(errcode.ERROR_CLIENT_READ, err.Error())
-			return errcode.ERROR_CLIENT_READ
+			// End of file
+			if err.Error() == "EOF" {
+				break
+			}
+			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_FILE_READ, filePath, err.Error())
+			return errcode.ERROR_FATAL_FILE_READ
 		}
-		command = strings.TrimSpace(command)
+		command := strings.TrimSpace(line)
+		if command == "" || strings.HasPrefix(command, "#") {
+			continue
+		}
+
+		fmt.Printf(">> %s\n", command)
 
 		_, err = conn.Write([]byte(command + "\n"))
 		if err != nil {

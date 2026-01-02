@@ -7,6 +7,10 @@ import (
 	"encoding/binary"
 	"io"
 	"os"
+	"path/filepath"
+
+	"chatia/modules/errcode"
+	"chatia/modules/interfaces"
 )
 
 /*******************
@@ -49,7 +53,7 @@ func FileWriteUint32(file *os.File, offset int64, intBuffer uint32) (int64, erro
 * FileReadString
 *******************/
 func FileReadString(file *os.File, offset int64, strBuffer *string) (int64, error) {
-	var length uint32
+	length := uint32(0)
 	offset, err := FileReadUint32(file, offset, &length)
 	if err != nil {
 		return 0, err
@@ -68,8 +72,7 @@ func FileReadString(file *os.File, offset int64, strBuffer *string) (int64, erro
 * FileWriteString
 *******************/
 func FileWriteString(file *os.File, offset int64, strBuffer string) (int64, error) {
-	var length uint32
-	length = uint32(len(strBuffer))
+	var length = uint32(len(strBuffer))
 
 	// si offset == -1, écrire à la fin du fichier
 	if offset == -1 {
@@ -105,17 +108,17 @@ func FileReadData(file *os.File, offset int64, dataBuffer *[]byte) (int64, error
 	*dataBuffer = make([]byte, length)
 	readLength, err := file.ReadAt((*dataBuffer)[:], offset)
 	if err != nil || uint32(readLength) != length {
+		print(err.Error())
 		return 0, err
 	}
 	return offset + int64(length), nil
 }
 
 /*******************
-* FileReadData
+* FileWriteData
 *******************/
 func FileWriteData(file *os.File, offset int64, dataBuffer []byte) (int64, error) {
-	var length uint32
-	length = uint32(len(dataBuffer))
+	var length = uint32(len(dataBuffer))
 
 	// si offset == -1, écrire à la fin du fichier
 	if offset == -1 {
@@ -136,4 +139,97 @@ func FileWriteData(file *os.File, offset int64, dataBuffer []byte) (int64, error
 		return 0, err
 	}
 	return offset + int64(length), nil
+}
+
+/*******************
+* FileGetEndOffset
+*******************/
+func FileGetEndOffset(file *os.File) (int64, error) {
+	offset, err := file.Seek(0, io.SeekEnd)
+	if err != nil {
+		return 0, err
+	}
+	return offset, nil
+}
+
+/*******************
+* initConfigFile
+*******************/
+func initConfigFile(confFile string) *os.File {
+	// Create or truncate the configuration file
+	fileHandle, err := os.OpenFile(confFile, os.O_CREATE|os.O_RDWR, 0600)
+	if err != nil {
+		errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_CREATE)
+		os.Exit(errcode.ERROR_FATAL_CONFIG_CREATE)
+	}
+
+	// Write file version
+	_, err = FileWriteUint32(fileHandle, 0, 0x62726e01)
+	if err != nil {
+		errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_WRITE)
+		os.Exit(errcode.ERROR_FATAL_CONFIG_WRITE)
+	}
+
+	return fileHandle
+}
+
+/*******************
+* CreateConfigFile
+*******************/
+func CreateConfigFile(brainConfig interfaces.I_BrainConfig, configFileName string) *os.File {
+	path := brainConfig.GetSaveDirectory()
+	err := os.MkdirAll(path, 0700)
+	if err != nil {
+		errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_CREATE)
+		os.Exit(errcode.ERROR_FATAL_CONFIG_OPEN)
+	}
+
+	confFile := filepath.Join(path, configFileName)
+
+	return initConfigFile(confFile)
+}
+
+/*******************
+* ReadConfigFile
+*******************/
+func ReadConfigFile(brainConfig interfaces.I_BrainConfig, configFileName string, loadFunction func(*os.File, int64, interfaces.I_BrainConfig, uint32)) *os.File {
+	path := brainConfig.GetSaveDirectory()
+	err := os.MkdirAll(path, 0700)
+	if err != nil {
+		errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_CREATE)
+		os.Exit(errcode.ERROR_FATAL_CONFIG_OPEN)
+	}
+
+	confFile := filepath.Join(path, configFileName)
+
+	// Open the configuration file
+	fileHandle, err := os.OpenFile(confFile, os.O_RDWR, 0)
+	if err != nil {
+		return initConfigFile(confFile)
+	}
+
+	// Read file version
+	var version uint32
+	dataOffset, err := FileReadUint32(fileHandle, 0, &version)
+	if err != nil {
+		errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_READ)
+		os.Exit(errcode.ERROR_FATAL_CONFIG_READ)
+	}
+	if version != 0x62726e01 {
+		errcode.PrintMsgFromErrorCode(errcode.ERROR_CRITICAL_CONFIG_INVALID_DATA)
+		os.Exit(errcode.ERROR_CRITICAL_CONFIG_INVALID_DATA)
+	}
+
+	loadFunction(fileHandle, dataOffset, brainConfig, version)
+
+	return fileHandle
+}
+
+/*******************
+* CloseFile
+*******************/
+func CloseFile(fileHandle *os.File) {
+	if fileHandle != nil {
+		fileHandle.Close()
+	}
 }
