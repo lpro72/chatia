@@ -33,7 +33,6 @@ func FileWriteUint32(file *os.File, offset int64, intBuffer uint32) (int64, erro
 	var buffer [4]byte
 	binary.BigEndian.PutUint32(buffer[:], intBuffer)
 
-	// si offset == -1, écrire à la fin du fichier
 	if offset == -1 {
 		var err error
 		offset, err = file.Seek(0, io.SeekEnd)
@@ -74,7 +73,6 @@ func FileReadString(file *os.File, offset int64, strBuffer *string) (int64, erro
 func FileWriteString(file *os.File, offset int64, strBuffer string) (int64, error) {
 	var length = uint32(len(strBuffer))
 
-	// si offset == -1, écrire à la fin du fichier
 	if offset == -1 {
 		var err error
 		offset, err = file.Seek(0, io.SeekEnd)
@@ -120,7 +118,6 @@ func FileReadData(file *os.File, offset int64, dataBuffer *[]byte) (int64, error
 func FileWriteData(file *os.File, offset int64, dataBuffer []byte) (int64, error) {
 	var length = uint32(len(dataBuffer))
 
-	// si offset == -1, écrire à la fin du fichier
 	if offset == -1 {
 		var err error
 		offset, err = file.Seek(0, io.SeekEnd)

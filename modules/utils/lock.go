@@ -22,7 +22,7 @@ type S_Lock struct {
 func (lock *S_Lock) Lock() {
 	goID := goid.Get()
 	if atomic.LoadInt64(&lock.lockGoID) == goID {
-		// Déjà verrouillé par cette goroutine
+		// Already locked by this goroutine
 		atomic.AddInt32(&lock.lockCount, 1)
 		return
 	}
