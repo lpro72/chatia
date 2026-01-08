@@ -6,7 +6,7 @@ package main
 import (
 	"chatia/modules/brain"
 
-	"chatia/modules/brain/type/bchess"
+	"chatia/modules/brain/type/chess"
 	"chatia/modules/brain/type/text"
 	"chatia/modules/data"
 )
@@ -18,7 +18,7 @@ func initAll() {
 	data.BrainConfig_Init()
 	brain.BrainManagement_Register()
 	text.TextBrainContext_Register()
-	bchess.ChessBrainContext_Register()
+	chess.ChessBrainContext_Register()
 	data.BrainConfig_Register()
 }
 
