@@ -1,20 +1,31 @@
-package btext
+package text
 
 /*******************
 * Import
 *******************/
 import (
-	"chatia/modules/brain/cell/type/ctext"
 	"chatia/modules/data"
 	"chatia/modules/interfaces"
 )
+
+/*******************
+* Globals Varables
+*******************/
+var g_TextCellType uint32 = 0
+
+/*******************
+* TextCell_Register
+*******************/
+func TextCell_Register() {
+	g_TextCellType = data.CellType_RegisterNewType("Text", CreateTextCellFromSerializeData)
+}
 
 /*******************
 * textBrainContext_Factory
 *******************/
 func textBrainContext_Factory(brainContext interfaces.I_BrainContext) {
 	if brainContext.GetFirstCellID() == 0 {
-		brainContext.SetFirstCell(ctext.TextCell_Create(brainContext))
+		brainContext.SetFirstCell(TextCell_Create(brainContext))
 	}
 	brainContext.SetLearnFunction(LearnTextFromBrain)
 	brainContext.SetDumpMemoryFunction(DumpMemoryText)
@@ -26,8 +37,8 @@ func textBrainContext_Factory(brainContext interfaces.I_BrainContext) {
 *******************/
 func TextBrainContext_Register() {
 	data.BrainContextManagement_RegisterNewContext("Text", textBrainContext_Factory)
-	ctext.TextCell_Register()
-	ctext.LetterCell_Register()
-	ctext.WordCell_Register()
+	TextCell_Register()
+	LetterCell_Register()
+	WordCell_Register()
 
 }

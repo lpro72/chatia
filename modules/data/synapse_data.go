@@ -11,9 +11,12 @@ import (
 * Types
 *******************/
 type S_Synapse struct {
-	brainConfig        interfaces.I_BrainConfig
-	synapseID          uint32
-	cellID             uint32
+	brainConfig interfaces.I_BrainConfig
+
+	synapseID uint32
+	cellID    uint32
+	score     uint32
+
 	nextSynapseID      uint32
 	previousSynapseID  uint32
 	childSynapseIDList []uint32
@@ -49,7 +52,7 @@ func (currentSynapse *S_Synapse) GetFirstChild() interfaces.I_Synapse {
 func (currentSynapse *S_Synapse) addChildSynapse(newSynapse *S_Synapse) {
 	var childSynapse interfaces.I_Synapse = nil
 	if currentSynapse.childSynapseIDList == nil {
-		currentSynapse.childSynapseIDList = make([]uint32, 0)
+		currentSynapse.childSynapseIDList = make([]uint32, 0, 10)
 	} else {
 		id := len(currentSynapse.childSynapseIDList) - 1
 		childSynapse = currentSynapse.brainConfig.GetSynapsesGroupManagement().GetSynapseFromID(currentSynapse.childSynapseIDList[id])
@@ -83,7 +86,6 @@ func CreateSynapse(brainConfig interfaces.I_BrainConfig, parentSynapse interface
 	newSynapse := new(S_Synapse)
 	newSynapse.brainConfig = brainConfig
 	newSynapse.synapseID = brainConfig.GetSynapsesGroupManagement().GetNextSynapseID()
-	newSynapse.parentSynapseID = 0
 
 	if parentSynapse != nil {
 		if concreteSynapse, ok := parentSynapse.(*S_Synapse); ok {

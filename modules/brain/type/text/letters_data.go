@@ -1,10 +1,12 @@
-package data
-
-import "chatia/modules/interfaces"
+package text
 
 /*******************
 * Import
 *******************/
+import (
+	"chatia/modules/data"
+	"chatia/modules/interfaces"
+)
 
 // 	"chatia/modules/errcode"
 // 	"chatia/modules/interfaces"
@@ -53,4 +55,23 @@ func (letterData *S_LetterCellData) DumpCell(currentCell interfaces.I_Cell, inde
 func (letterData *S_LetterCellData) GetSerializedData() []byte {
 	println("letters_data/GetSerializedData")
 	return []byte("")
+}
+
+/*******************
+* CreateLetterCellFromSerializeData
+*******************/
+func CreateLetterCellFromSerializeData(dataSerialized []byte) interfaces.I_CellData {
+	letterData := new(S_LetterCellData)
+	return letterData
+}
+
+/*******************
+* LetterCell_Create
+*******************/
+func LetterCell_Create(brainConfig interfaces.I_BrainConfig, letter rune) interfaces.I_Cell {
+	// New cell must be created
+	newLetterData := new(S_LetterCellData)
+	newCell := data.CreateCell(brainConfig, newLetterData, g_LetterCellType)
+	newLetterData.Letter = letter
+	return (newCell)
 }

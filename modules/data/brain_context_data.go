@@ -76,7 +76,6 @@ func (brainContext *S_BrainContext) SetFirstCell(firstCell interfaces.I_Cell) {
 	synapse := brainContext.GetFirstSynapse()
 	if synapse == nil {
 		synapse = CreateSynapse(brainContext.brainConfig, nil, firstCell)
-		brainContext.brainConfig.GetSynapsesGroupManagement().AppendSynapseToGroup(synapse)
 		brainContext.SetFirstSynapse(synapse)
 		return
 	}

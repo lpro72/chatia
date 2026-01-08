@@ -1,4 +1,4 @@
-package ctext
+package text
 
 /*******************
 * Import
@@ -24,37 +24,18 @@ func LetterCell_Register() {
 }
 
 /*******************
-* CreateLetterCellFromSerializeData
-*******************/
-func CreateLetterCellFromSerializeData(dataSerialized []byte) interfaces.I_CellData {
-	letterData := new(data.S_LetterCellData)
-	return letterData
-}
-
-/*******************
-* LetterCell_Create
-*******************/
-func LetterCell_Create(brainConfig interfaces.I_BrainConfig, letter rune) interfaces.I_Cell {
-	// New cell must be created
-	newLetterData := new(data.S_LetterCellData)
-	newCell := data.CreateCell(brainConfig, newLetterData, g_LetterCellType)
-	newLetterData.Letter = letter
-	return (newCell)
-}
-
-/*******************
 * LetterCell_GetWordFromLastSynapse
 *******************/
 func LetterCell_GetWordFromLastSynapse(lastSynapse interfaces.I_Synapse) string {
 	var word []rune
-	letterData := templates.GetDataFromCell[*data.S_LetterCellData](lastSynapse.GetCell())
+	letterData := templates.GetDataFromCell[*S_LetterCellData](lastSynapse.GetCell())
 	word = append(word, letterData.Letter)
 	for parentSynapse := lastSynapse.GetParent(); parentSynapse != nil; parentSynapse = parentSynapse.GetParent() {
 		// The last parent cell is not a valid letter cell
 		if parentSynapse.GetParent() == nil {
 			break
 		}
-		letterData = templates.GetDataFromCell[*data.S_LetterCellData](parentSynapse.GetCell())
+		letterData = templates.GetDataFromCell[*S_LetterCellData](parentSynapse.GetCell())
 		word = append([]rune{letterData.Letter}, word...)
 	}
 	return (string(word))
@@ -69,7 +50,7 @@ func LetterCell_Search(brainConfig interfaces.I_BrainConfig, letter rune, parent
 
 	for currentSynapse != nil {
 		currentCell := currentSynapse.GetCell()
-		letterData := templates.GetDataFromCell[*data.S_LetterCellData](currentCell)
+		letterData := templates.GetDataFromCell[*S_LetterCellData](currentCell)
 		if letterData.Letter == letter {
 			return currentSynapse, currentCell
 		}

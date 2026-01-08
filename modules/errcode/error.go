@@ -88,6 +88,8 @@ const ERROR_FATAL_CLIENT_NOT_CONNECT int = ERROR_FATAL + ERROR_CLIENT + ERROR_NO
 const ERROR_FATAL_CONFIG_CREATE int = ERROR_FATAL + ERROR_CONFIG + ERROR_CREATE
 const ERROR_FATAL_CONFIG_WRITE int = ERROR_FATAL + ERROR_CONFIG + ERROR_WRITE
 const ERROR_FATAL_CONFIG_OPEN int = ERROR_FATAL + ERROR_CONFIG + ERROR_OPEN
+const ERROR_FATAL_CELL_INVALID_DATA int = ERROR_FATAL + ERROR_CELL + ERROR_INVALID_DATA
+const ERROR_FATAL_CELL_CREATE int = ERROR_FATAL + ERROR_CELL + ERROR_CREATE
 const ERROR_FATAL_CONFIG_READ int = ERROR_FATAL + ERROR_CONFIG + ERROR_READ
 const ERROR_FATAL_FILE_OPEN int = ERROR_FATAL + ERROR_FILE + ERROR_OPEN
 const ERROR_FATAL_FILE_READ int = ERROR_FATAL + ERROR_FILE + ERROR_READ
@@ -126,8 +128,10 @@ var errorString = map[int]string{
 	ERROR_FATAL_CLIENT_NOT_CONNECT:  "Cannot connect to the server.\n%s",
 
 	// Cell
-	WARNING_CELL_INVALID_DATA: "Invalid cell, return and empty cell instead",
-	WARNING_CELL_NOT_SET:      "Nil cell",
+	WARNING_CELL_INVALID_DATA:     "Invalid cell, return and empty cell instead",
+	WARNING_CELL_NOT_SET:          "Nil cell",
+	ERROR_FATAL_CELL_INVALID_DATA: "The cell data is invalid.",
+	ERROR_FATAL_CELL_CREATE:       "Cannot create the cell.",
 
 	// Configuration
 	WARNING_CONFIG_NOT_FOUND:           "The brain name '%s' is in configuration file but not in the brain.",

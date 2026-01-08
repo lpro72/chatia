@@ -1,4 +1,4 @@
-package bchess
+package chess
 
 /*******************
 * Import

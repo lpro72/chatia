@@ -1,4 +1,4 @@
-package ctext
+package text
 
 /*******************
 * Import
@@ -21,26 +21,6 @@ var g_WordCellType uint32 = 0
 *******************/
 func WordCell_Register() {
 	g_WordCellType = data.CellType_RegisterNewType("Word", CreateWordCellFromSerializeData)
-}
-
-/*******************
-* CreateWordCellFromSerializeData
-*******************/
-func CreateWordCellFromSerializeData(dataSerialized []byte) interfaces.I_CellData {
-	wordData := new(data.S_WordCellData)
-	return wordData
-}
-
-/*******************
-* WordCell_Create
-*******************/
-func WordCell_Create(brainConfig interfaces.I_BrainConfig, parentSynapse interfaces.I_Synapse, FirstLetterSynapse interfaces.I_Synapse, lastLetterSynapse interfaces.I_Synapse) interfaces.I_Cell {
-	newWordData := new(data.S_WordCellData)
-	newCell := data.CreateCell(brainConfig, newWordData, g_WordCellType)
-	newWordData.LastLetterSynapse = lastLetterSynapse
-	newWordData.FirstLetterSynapse = FirstLetterSynapse
-	newWordData.Word = LetterCell_GetWordFromLastSynapse(lastLetterSynapse)
-	return (newCell)
 }
 
 /*******************

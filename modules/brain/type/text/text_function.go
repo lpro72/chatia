@@ -1,4 +1,4 @@
-package btext
+package text
 
 /*******************
 * Import
@@ -6,10 +6,8 @@ package btext
 import (
 	"unicode"
 
-	"chatia/modules/brain/cell/type/ctext"
-	"chatia/modules/data"
-
 	// "chatia/modules/errcode"
+	"chatia/modules/data"
 	"chatia/modules/interfaces"
 	"chatia/modules/templates"
 )
@@ -47,9 +45,9 @@ func LearnText(brainContext interfaces.I_BrainContext, text string) {
 	var currentCell interfaces.I_Cell = nil
 	var currentSynapse interfaces.I_Synapse = nil
 	var firstSynapse interfaces.I_Synapse = nil
-	var letterData *data.S_LetterCellData = nil
+	var letterData *S_LetterCellData = nil
 	var wordCell interfaces.I_Cell = nil
-	textData := templates.GetDataFromCell[*data.S_TextData](textCell)
+	textData := templates.GetDataFromCell[*S_TextData](textCell)
 
 	// initialisation
 	if textData.WordSynapse == nil {
@@ -64,15 +62,15 @@ func LearnText(brainContext interfaces.I_BrainContext, text string) {
 		if !unicode.IsLetter(r) {
 			// Mark as end of a word
 			if currentCell != nil {
-				letterData = templates.GetDataFromCell[*data.S_LetterCellData](currentCell)
+				letterData = templates.GetDataFromCell[*S_LetterCellData](currentCell)
 				if letterData.WordCellID == 0 {
-					wordCell = ctext.WordCell_Create(brainConfig, textData.WordSynapse, firstSynapse, currentSynapse)
+					wordCell = WordCell_Create(brainConfig, textData.WordSynapse, firstSynapse, currentSynapse)
 					letterData.WordCellID = wordCell.GetID()
 					data.CreateSynapse(brainConfig, textData.WordSynapse, wordCell)
 				} else {
 					wordCell = brainConfig.GetCellsGroupManagament().GetCellFromID(letterData.WordCellID)
 				}
-				wordData := templates.GetDataFromCell[*data.S_WordCellData](wordCell)
+				wordData := templates.GetDataFromCell[*S_WordCellData](wordCell)
 				wordData.Count += 1
 			}
 			currentCell = nil
@@ -86,8 +84,8 @@ func LearnText(brainContext interfaces.I_BrainContext, text string) {
 			currentSynapse = textData.LetterSynapse
 		}
 
-		currentSynapse, currentCell := ctext.LetterCell_Search(brainConfig, unicode.ToLower(r), currentSynapse)
-		letterData = templates.GetDataFromCell[*data.S_LetterCellData](currentCell)
+		currentSynapse, currentCell := LetterCell_Search(brainConfig, unicode.ToLower(r), currentSynapse)
+		letterData = templates.GetDataFromCell[*S_LetterCellData](currentCell)
 		letterData.Count += 1
 		if firstSynapse == nil {
 			firstSynapse = currentSynapse
@@ -96,15 +94,15 @@ func LearnText(brainContext interfaces.I_BrainContext, text string) {
 
 	// Last word
 	if currentCell != nil {
-		letterData = templates.GetDataFromCell[*data.S_LetterCellData](currentCell)
+		letterData = templates.GetDataFromCell[*S_LetterCellData](currentCell)
 		if letterData.WordCellID == 0 {
-			wordCell = ctext.WordCell_Create(brainConfig, textData.WordSynapse, firstSynapse, currentSynapse)
+			wordCell = WordCell_Create(brainConfig, textData.WordSynapse, firstSynapse, currentSynapse)
 			letterData.WordCellID = wordCell.GetID()
 			data.CreateSynapse(brainConfig, textData.WordSynapse, wordCell)
 		} else {
 			wordCell = brainConfig.GetCellsGroupManagament().GetCellFromID(letterData.WordCellID)
 		}
-		wordData := templates.GetDataFromCell[*data.S_WordCellData](wordCell)
+		wordData := templates.GetDataFromCell[*S_WordCellData](wordCell)
 		wordData.Count += 1
 	}
 }

@@ -1,0 +1,15 @@
+# use new brain
+use Text
+learn Ceci est un test
+learn Voici une autre ligne de test
+learn Apprenons encore plus de choses
+learn Le chatia est un projet open source
+learn J'aime programmer en Go
+learn Les tests unitaires sont importants
+dumpmemory
+use __Management__
+dumpmemory
+# Ceci est un commentaire
+use main brain
+stop
+
