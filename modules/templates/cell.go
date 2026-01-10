@@ -16,7 +16,6 @@ func GetDataFromCell[T any](currentCell interfaces.I_Cell) T {
 	if currentCell == nil {
 		// Return and empty cell
 		errcode.PrintMsgFromErrorCode(errcode.WARNING_CELL_NOT_SET)
-		errcode.PrintCallStack()
 		return zero
 	}
 
@@ -25,7 +24,6 @@ func GetDataFromCell[T any](currentCell interfaces.I_Cell) T {
 	if !ok {
 		// Return and empty cell
 		errcode.PrintMsgFromErrorCode(errcode.WARNING_CELL_INVALID_DATA)
-		errcode.PrintCallStack()
 		return zero
 	}
 

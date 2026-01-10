@@ -25,7 +25,7 @@ func TextCell_Register() {
 *******************/
 func textBrainContext_Factory(brainContext interfaces.I_BrainContext) {
 	if brainContext.GetFirstCellID() == 0 {
-		brainContext.SetFirstCell(TextCell_Create(brainContext))
+		brainContext.SetFirstCell(TextCell_Create(brainContext), 0)
 	}
 	brainContext.SetLearnFunction(LearnTextFromBrain)
 	brainContext.SetDumpMemoryFunction(DumpMemoryText)

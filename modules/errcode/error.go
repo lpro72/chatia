@@ -71,6 +71,7 @@ const ERROR_SERVER_WRITE int = ERROR + ERROR_SERVER + ERROR_WRITE
 const ERROR_SERVER_READ int = ERROR + ERROR_SERVER + ERROR_READ
 const ERROR_CLIENT_WRITE int = ERROR + ERROR_CLIENT + ERROR_WRITE
 const ERROR_CLIENT_READ int = ERROR + ERROR_CLIENT + ERROR_READ
+const ERROR_CELL_READ int = ERROR + ERROR_CELL + ERROR_READ
 
 // Error critical code
 const ERROR_CRITICAL_BRAIN_NOT_FOUND int = ERROR_CRITICAL + ERROR_BRAIN + ERROR_NOT_FOUND
@@ -130,6 +131,7 @@ var errorString = map[int]string{
 	// Cell
 	WARNING_CELL_INVALID_DATA:     "Invalid cell, return and empty cell instead",
 	WARNING_CELL_NOT_SET:          "Nil cell",
+	ERROR_CELL_READ:               "Cannot read the cell. this cell is dead",
 	ERROR_FATAL_CELL_INVALID_DATA: "The cell data is invalid.",
 	ERROR_FATAL_CELL_CREATE:       "Cannot create the cell.",
 

@@ -91,13 +91,12 @@ func (synapsesGroup *S_SynapsesGroup) appendSynapseToFile(synapse interfaces.I_S
 			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_WRITE)
 			os.Exit(errcode.ERROR_FATAL_CONFIG_WRITE)
 		}
-		totalChildren := uint32(len(concreteSynapse.childSynapseIDList))
-		dataOffset, err = utils.FileWriteUint32(synapsesGroup.fileHandle, dataOffset, totalChildren)
+		dataOffset, err = utils.FileWriteUint32(synapsesGroup.fileHandle, dataOffset, concreteSynapse.maxChildListSize)
 		if err != nil {
 			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_WRITE)
 			os.Exit(errcode.ERROR_FATAL_CONFIG_WRITE)
 		}
-		tempList := make([]uint32, 10)
+		tempList := make([]uint32, concreteSynapse.maxChildListSize)
 		copy(tempList, concreteSynapse.childSynapseIDList)
 		for _, childID := range tempList {
 			dataOffset, err = utils.FileWriteUint32(synapsesGroup.fileHandle, dataOffset, childID)
@@ -142,7 +141,7 @@ func (synapsesGroup *S_SynapsesGroup) LoadFromFile(fileHandle *os.File, dataOffs
 		var value uint32
 		var err error
 
-		synapse := CreateSynapse(brainConfig, nil, nil)
+		synapse := CreateSynapse(brainConfig, nil, nil, 0)
 		concreteSynapse, ok := synapse.(*S_Synapse)
 		if !ok {
 			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CELL_INVALID_DATA)
@@ -200,21 +199,24 @@ func (synapsesGroup *S_SynapsesGroup) LoadFromFile(fileHandle *os.File, dataOffs
 		}
 		concreteSynapse.parentSynapseID = value
 
-		// Read child list size
-		var childListSize uint32 = 0
-		dataOffset, err = utils.FileReadUint32(fileHandle, dataOffset, &childListSize)
+		// Read max child list size
+		dataOffset, err = utils.FileReadUint32(fileHandle, dataOffset, &value)
 		if err != nil {
 			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_READ)
 			os.Exit(errcode.ERROR_FATAL_CONFIG_READ)
 		}
+		concreteSynapse.maxChildListSize = value
 
-		for i := uint32(0); i < childListSize; i++ {
+		concreteSynapse.childSynapseIDList = make([]uint32, 0, concreteSynapse.maxChildListSize)
+		for i := uint32(0); i < concreteSynapse.maxChildListSize; i++ {
 			dataOffset, err = utils.FileReadUint32(fileHandle, dataOffset, &value)
 			if err != nil {
 				errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_READ)
 				os.Exit(errcode.ERROR_FATAL_CONFIG_READ)
 			}
-			concreteSynapse.childSynapseIDList = append(concreteSynapse.childSynapseIDList, value)
+			if value != 0 {
+				concreteSynapse.childSynapseIDList = append(concreteSynapse.childSynapseIDList, value)
+			}
 		}
 	}
 }

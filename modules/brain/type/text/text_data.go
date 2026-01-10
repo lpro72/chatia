@@ -7,7 +7,6 @@ import (
 	"encoding/binary"
 
 	"chatia/modules/data"
-	"chatia/modules/errcode"
 	"chatia/modules/interfaces"
 )
 
@@ -15,9 +14,9 @@ import (
 * Types
 *******************/
 type S_TextData struct {
-	Count         int
-	LetterSynapse interfaces.I_Synapse
-	WordSynapse   interfaces.I_Synapse
+	Count           int
+	LetterSynapseID uint32
+	WordSynapseID   uint32
 }
 
 /*******************
@@ -38,7 +37,6 @@ func (textData *S_TextData) GetSerializedData() []byte {
 * CreateTextCellFromSerializeData
 *******************/
 func CreateTextCellFromSerializeData(dataSerialized []byte) interfaces.I_CellData {
-	errcode.PrintCallStack()
 	if len(dataSerialized) < 4 {
 		return nil
 	}

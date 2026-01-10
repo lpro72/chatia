@@ -72,10 +72,10 @@ func (brainContext *S_BrainContext) GetFirstCell() interfaces.I_Cell {
 	return cell
 }
 
-func (brainContext *S_BrainContext) SetFirstCell(firstCell interfaces.I_Cell) {
+func (brainContext *S_BrainContext) SetFirstCell(firstCell interfaces.I_Cell, maxChildListSize uint32) {
 	synapse := brainContext.GetFirstSynapse()
 	if synapse == nil {
-		synapse = CreateSynapse(brainContext.brainConfig, nil, firstCell)
+		synapse = CreateSynapse(brainContext.brainConfig, nil, firstCell, maxChildListSize)
 		brainContext.SetFirstSynapse(synapse)
 		return
 	}

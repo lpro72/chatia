@@ -4,6 +4,8 @@ package text
 * Import
 *******************/
 import (
+	"encoding/binary"
+
 	"chatia/modules/data"
 	"chatia/modules/interfaces"
 )
@@ -52,8 +54,13 @@ func (letterData *S_LetterCellData) DumpCell(currentCell interfaces.I_Cell, inde
 }
 
 func (letterData *S_LetterCellData) GetSerializedData() []byte {
-	println("letters_data/GetSerializedData")
-	return []byte("")
+	buf := make([]byte, 12)
+
+	binary.LittleEndian.PutUint32(buf[0:4], uint32(letterData.Count))
+	binary.LittleEndian.PutUint32(buf[4:8], uint32(letterData.Letter))
+	binary.LittleEndian.PutUint32(buf[8:12], letterData.WordCellID)
+
+	return buf
 }
 
 /*******************
@@ -61,6 +68,9 @@ func (letterData *S_LetterCellData) GetSerializedData() []byte {
 *******************/
 func CreateLetterCellFromSerializeData(dataSerialized []byte) interfaces.I_CellData {
 	letterData := new(S_LetterCellData)
+	letterData.Count = int(binary.LittleEndian.Uint32(dataSerialized[0:4]))
+	letterData.Letter = rune(binary.LittleEndian.Uint32(dataSerialized[4:8]))
+	letterData.WordCellID = binary.LittleEndian.Uint32(dataSerialized[8:12])
 	return letterData
 }
 

@@ -19,8 +19,9 @@ type S_Synapse struct {
 
 	nextSynapseID      uint32
 	previousSynapseID  uint32
-	childSynapseIDList []uint32
 	parentSynapseID    uint32
+	childSynapseIDList []uint32
+	maxChildListSize   uint32
 }
 
 /*******************
@@ -71,6 +72,18 @@ func (currentSynapse *S_Synapse) GetCell() interfaces.I_Cell {
 	return currentSynapse.brainConfig.GetCellsGroupManagament().GetCellFromID(currentSynapse.cellID)
 }
 
+func (currentSynapse *S_Synapse) GetCellID() uint32 {
+	return currentSynapse.cellID
+}
+
+func (currentSynapse *S_Synapse) GetScore() uint32 {
+	return currentSynapse.score
+}
+
+func (currentSynapse *S_Synapse) SetScore(score uint32) {
+	currentSynapse.score = score
+}
+
 func (currentSynapse *S_Synapse) DumpCell(indentation []byte) {
 	println("synapse_data/DumpCell")
 	// 	cellData := currentSynapse.GetData()
@@ -82,10 +95,14 @@ func (currentSynapse *S_Synapse) DumpCell(indentation []byte) {
 /*******************
 * CreateSynapse
 *******************/
-func CreateSynapse(brainConfig interfaces.I_BrainConfig, parentSynapse interfaces.I_Synapse, cell interfaces.I_Cell) interfaces.I_Synapse {
+func CreateSynapse(brainConfig interfaces.I_BrainConfig, parentSynapse interfaces.I_Synapse, cell interfaces.I_Cell, maxChildListSize uint32) interfaces.I_Synapse {
 	newSynapse := new(S_Synapse)
 	newSynapse.brainConfig = brainConfig
 	newSynapse.synapseID = brainConfig.GetSynapsesGroupManagement().GetNextSynapseID()
+	newSynapse.maxChildListSize = maxChildListSize
+	if cell != nil {
+		newSynapse.cellID = cell.GetID()
+	}
 
 	if parentSynapse != nil {
 		if concreteSynapse, ok := parentSynapse.(*S_Synapse); ok {

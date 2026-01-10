@@ -59,7 +59,8 @@ func LetterCell_Search(brainConfig interfaces.I_BrainConfig, letter rune, parent
 
 	// New cell must be created
 	currentCell := LetterCell_Create(brainConfig, letter)
-	return data.CreateSynapse(brainConfig, currentSynapse, currentCell), currentCell
+	println("Created new letter cell for letter:", string(letter))
+	return data.CreateSynapse(brainConfig, parentSynapse, currentCell, 26), currentCell
 }
 
 /*******************

@@ -11,7 +11,7 @@ type I_BrainContext interface {
 	SetFirstSynapse(firstSynapse I_Synapse)
 	GetFirstCellID() uint32
 	GetFirstCell() I_Cell
-	SetFirstCell(firstCell I_Cell)
+	SetFirstCell(firstCell I_Cell, maxChildListSize uint32)
 
 	SetLearnFunction(learn func(brainContext I_BrainContext, data []byte))
 	SetExecFunction(exec func(brainContext I_BrainContext, command string) string)

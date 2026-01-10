@@ -10,4 +10,7 @@ type I_Synapse interface {
 	GetPrevious() I_Synapse
 	GetFirstChild() I_Synapse
 	GetCell() I_Cell
+	GetCellID() uint32
+	GetScore() uint32
+	SetScore(score uint32)
 }

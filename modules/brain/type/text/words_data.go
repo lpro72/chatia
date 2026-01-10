@@ -4,9 +4,11 @@ package text
 * Import
 *******************/
 import (
-	// 	"fmt"
+	"bytes"
+	"fmt"
 
 	"chatia/modules/data"
+	"chatia/modules/errcode"
 	"chatia/modules/interfaces"
 	// "chatia/modules/templates"
 )
@@ -15,10 +17,10 @@ import (
 * Types
 *******************/
 type S_WordCellData struct {
-	Count              int
-	FirstLetterSynapse interfaces.I_Synapse
-	LastLetterSynapse  interfaces.I_Synapse
-	Word               string
+	Count                int
+	FirstLetterSynapseID uint32
+	LastLetterSynapseID  uint32
+	Word                 string
 }
 
 /*******************
@@ -31,7 +33,7 @@ func (wordData *S_WordCellData) DumpCell(currentCell interfaces.I_Cell, indentat
 }
 
 func (wordData *S_WordCellData) GetSerializedData() []byte {
-	return []byte("")
+	return fmt.Appendf(nil, "%s-%d-%d-%d", wordData.Word, wordData.FirstLetterSynapseID, wordData.LastLetterSynapseID, wordData.Count)
 }
 
 /*******************
@@ -39,17 +41,22 @@ func (wordData *S_WordCellData) GetSerializedData() []byte {
 *******************/
 func CreateWordCellFromSerializeData(dataSerialized []byte) interfaces.I_CellData {
 	wordData := new(S_WordCellData)
+	reader := bytes.NewReader(dataSerialized)
+	_, err := fmt.Fscanf(reader, "%s-%d-%d-%d", &wordData.Word, &wordData.FirstLetterSynapseID, &wordData.LastLetterSynapseID, &wordData.Count)
+	if err != nil {
+		errcode.PrintMsgFromErrorCode(errcode.ERROR_CELL_READ)
+	}
 	return wordData
 }
 
 /*******************
 * WordCell_Create
 *******************/
-func WordCell_Create(brainConfig interfaces.I_BrainConfig, parentSynapse interfaces.I_Synapse, FirstLetterSynapse interfaces.I_Synapse, lastLetterSynapse interfaces.I_Synapse) interfaces.I_Cell {
+func WordCell_Create(brainConfig interfaces.I_BrainConfig, FirstLetterSynapse interfaces.I_Synapse, lastLetterSynapse interfaces.I_Synapse) interfaces.I_Cell {
 	newWordData := new(S_WordCellData)
 	newCell := data.CreateCell(brainConfig, newWordData, g_WordCellType)
-	newWordData.LastLetterSynapse = lastLetterSynapse
-	newWordData.FirstLetterSynapse = FirstLetterSynapse
+	newWordData.LastLetterSynapseID = lastLetterSynapse.GetID()
+	newWordData.FirstLetterSynapseID = FirstLetterSynapse.GetID()
 	newWordData.Word = LetterCell_GetWordFromLastSynapse(lastLetterSynapse)
 	return (newCell)
 }
