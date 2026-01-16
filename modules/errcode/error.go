@@ -61,6 +61,7 @@ const WARNING_BRAIN_EMPTY int = WARNING + ERROR_BRAIN + ERROR_EMPTY
 const WARNING_DEBUG_NOT_SET int = WARNING + ERROR_DEBUG + ERROR_NOT_SET
 const WARNING_COMMAND_NOT_FOUND int = WARNING + ERROR_COMMAND + ERROR_NOT_FOUND
 const WARNING_SERVER_NOT_CONNECT int = WARNING + ERROR_SERVER + ERROR_NOT_CONNECT
+const WARNING_CELL_NOT_FOUND int = WARNING + ERROR_CELL + ERROR_NOT_FOUND
 const WARNING_CELL_INVALID_DATA int = WARNING + ERROR_CELL + ERROR_INVALID_DATA
 const WARNING_CELL_NOT_SET int = WARNING + ERROR_CELL + ERROR_NOT_SET
 const WARNING_CONFIG_NOT_FOUND int = WARNING + ERROR_CONFIG + ERROR_NOT_FOUND
@@ -93,6 +94,7 @@ const ERROR_FATAL_CELL_INVALID_DATA int = ERROR_FATAL + ERROR_CELL + ERROR_INVAL
 const ERROR_FATAL_CELL_CREATE int = ERROR_FATAL + ERROR_CELL + ERROR_CREATE
 const ERROR_FATAL_CONFIG_READ int = ERROR_FATAL + ERROR_CONFIG + ERROR_READ
 const ERROR_FATAL_FILE_OPEN int = ERROR_FATAL + ERROR_FILE + ERROR_OPEN
+const ERROR_FATAL_FILE_WRITE int = ERROR_FATAL + ERROR_FILE + ERROR_WRITE
 const ERROR_FATAL_FILE_READ int = ERROR_FATAL + ERROR_FILE + ERROR_READ
 
 /*******************
@@ -129,6 +131,7 @@ var errorString = map[int]string{
 	ERROR_FATAL_CLIENT_NOT_CONNECT:  "Cannot connect to the server.\n%s",
 
 	// Cell
+	WARNING_CELL_NOT_FOUND:        "The cell ID '%d' is not found.",
 	WARNING_CELL_INVALID_DATA:     "Invalid cell, return and empty cell instead",
 	WARNING_CELL_NOT_SET:          "Nil cell",
 	ERROR_CELL_READ:               "Cannot read the cell. this cell is dead",
@@ -144,8 +147,9 @@ var errorString = map[int]string{
 	ERROR_FATAL_CONFIG_READ:            "Cannot read the configuration file",
 
 	// File
-	ERROR_FATAL_FILE_OPEN: "Cannot open the file '%s'.\n%s",
-	ERROR_FATAL_FILE_READ: "Cannot read the file '%s'.\n%s",
+	ERROR_FATAL_FILE_OPEN:  "Cannot open the file '%s'.\n%s",
+	ERROR_FATAL_FILE_WRITE: "Cannot write in the file '%s'.\n%s",
+	ERROR_FATAL_FILE_READ:  "Cannot read the file '%s'.\n%s",
 
 	// Message
 	ERROR_MSG_NOT_FOUND: "The error message is not found."}

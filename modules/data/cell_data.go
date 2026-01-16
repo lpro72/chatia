@@ -11,12 +11,8 @@ import (
 * Types
 *******************/
 type S_Cell struct {
-	id       uint32
-	cellType uint32
-	// nextCellID      uint32
-	// previousCellID  uint32
-	// childCellIDList []uint32
-	// parentCellID    uint32
+	id          uint32
+	cellType    uint32
 	cellData    interfaces.I_CellData
 	brainConfig interfaces.I_BrainConfig
 }

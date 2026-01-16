@@ -25,6 +25,7 @@ type S_SynapsesGroup struct {
 	SynapseExtendedID uint32
 
 	fileHandle *os.File
+	fileName   string
 	loaded     bool
 	dataOffset int64
 
@@ -46,7 +47,8 @@ func (synapsesGroup *S_SynapsesGroup) LoadSynapsesGroupFromFile() {
 		return
 	}
 	synapsesGroup.loaded = true
-	synapsesGroup.fileHandle = utils.ReadConfigFile(synapsesGroup.brainConfig, fmt.Sprintf("synapses_group_%d.brn", synapsesGroup.SynapsegroupID), synapsesGroup.LoadFromFile)
+	synapsesGroup.fileName = fmt.Sprintf("synapses_group_%d.brn", synapsesGroup.SynapsegroupID)
+	synapsesGroup.fileHandle = utils.ReadConfigFile(synapsesGroup.brainConfig, synapsesGroup.fileName, synapsesGroup.LoadFromFile)
 }
 
 func (synapsesGroup *S_SynapsesGroup) appendSynapseToFile(synapse interfaces.I_Synapse) {
@@ -63,46 +65,46 @@ func (synapsesGroup *S_SynapsesGroup) appendSynapseToFile(synapse interfaces.I_S
 	if concreteSynapse, ok := synapse.(*S_Synapse); ok {
 		dataOffset, err = utils.FileWriteUint32(synapsesGroup.fileHandle, dataOffset, concreteSynapse.synapseID)
 		if err != nil {
-			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_WRITE)
-			os.Exit(errcode.ERROR_FATAL_CONFIG_WRITE)
+			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_WRITE, synapsesGroup.fileName, err.Error())
+			return
 		}
 		dataOffset, err = utils.FileWriteUint32(synapsesGroup.fileHandle, dataOffset, concreteSynapse.cellID)
 		if err != nil {
-			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_WRITE)
-			os.Exit(errcode.ERROR_FATAL_CONFIG_WRITE)
+			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_WRITE, synapsesGroup.fileName, err.Error())
+			return
 		}
 		dataOffset, err = utils.FileWriteUint32(synapsesGroup.fileHandle, dataOffset, concreteSynapse.score)
 		if err != nil {
-			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_WRITE)
-			os.Exit(errcode.ERROR_FATAL_CONFIG_WRITE)
+			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_WRITE, synapsesGroup.fileName, err.Error())
+			return
 		}
 		dataOffset, err = utils.FileWriteUint32(synapsesGroup.fileHandle, dataOffset, concreteSynapse.nextSynapseID)
 		if err != nil {
-			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_WRITE)
-			os.Exit(errcode.ERROR_FATAL_CONFIG_WRITE)
+			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_WRITE, synapsesGroup.fileName, err.Error())
+			return
 		}
 		dataOffset, err = utils.FileWriteUint32(synapsesGroup.fileHandle, dataOffset, concreteSynapse.previousSynapseID)
 		if err != nil {
-			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_WRITE)
-			os.Exit(errcode.ERROR_FATAL_CONFIG_WRITE)
+			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_WRITE, synapsesGroup.fileName, err.Error())
+			return
 		}
 		dataOffset, err = utils.FileWriteUint32(synapsesGroup.fileHandle, dataOffset, concreteSynapse.parentSynapseID)
 		if err != nil {
-			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_WRITE)
-			os.Exit(errcode.ERROR_FATAL_CONFIG_WRITE)
+			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_WRITE, synapsesGroup.fileName, err.Error())
+			return
 		}
 		dataOffset, err = utils.FileWriteUint32(synapsesGroup.fileHandle, dataOffset, concreteSynapse.maxChildListSize)
 		if err != nil {
-			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_WRITE)
-			os.Exit(errcode.ERROR_FATAL_CONFIG_WRITE)
+			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_WRITE, synapsesGroup.fileName, err.Error())
+			return
 		}
 		tempList := make([]uint32, concreteSynapse.maxChildListSize)
 		copy(tempList, concreteSynapse.childSynapseIDList)
 		for _, childID := range tempList {
 			dataOffset, err = utils.FileWriteUint32(synapsesGroup.fileHandle, dataOffset, childID)
 			if err != nil {
-				errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_WRITE)
-				os.Exit(errcode.ERROR_FATAL_CONFIG_WRITE)
+				errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_WRITE, synapsesGroup.fileName, err.Error())
+				return
 			}
 		}
 	}
@@ -144,8 +146,8 @@ func (synapsesGroup *S_SynapsesGroup) LoadFromFile(fileHandle *os.File, dataOffs
 		synapse := CreateSynapse(brainConfig, nil, nil, 0)
 		concreteSynapse, ok := synapse.(*S_Synapse)
 		if !ok {
-			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CELL_INVALID_DATA)
-			os.Exit(errcode.ERROR_FATAL_CELL_INVALID_DATA)
+			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CELL_CREATE)
+			return
 		}
 
 		// Read synapse ID
@@ -154,56 +156,56 @@ func (synapsesGroup *S_SynapsesGroup) LoadFromFile(fileHandle *os.File, dataOffs
 			if err == io.EOF {
 				break
 			}
-			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_READ)
-			os.Exit(errcode.ERROR_FATAL_CONFIG_READ)
+			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_READ, synapsesGroup.fileName, err.Error())
+			return
 		}
 		concreteSynapse.synapseID = value
 
 		// Read cell ID
 		dataOffset, err = utils.FileReadUint32(fileHandle, dataOffset, &value)
 		if err != nil {
-			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_READ)
-			os.Exit(errcode.ERROR_FATAL_CONFIG_READ)
+			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_READ, synapsesGroup.fileName, err.Error())
+			return
 		}
 		concreteSynapse.cellID = value
 
 		// Read score
 		dataOffset, err = utils.FileReadUint32(fileHandle, dataOffset, &value)
 		if err != nil {
-			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_READ)
-			os.Exit(errcode.ERROR_FATAL_CONFIG_READ)
+			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_READ, synapsesGroup.fileName, err.Error())
+			return
 		}
 		concreteSynapse.score = value
 
 		// Read next synapse ID
 		dataOffset, err = utils.FileReadUint32(fileHandle, dataOffset, &value)
 		if err != nil {
-			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_READ)
-			os.Exit(errcode.ERROR_FATAL_CONFIG_READ)
+			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_READ, synapsesGroup.fileName, err.Error())
+			return
 		}
 		concreteSynapse.nextSynapseID = value
 
 		// Read previous synapse ID
 		dataOffset, err = utils.FileReadUint32(fileHandle, dataOffset, &value)
 		if err != nil {
-			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_READ)
-			os.Exit(errcode.ERROR_FATAL_CONFIG_READ)
+			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_READ, synapsesGroup.fileName, err.Error())
+			return
 		}
 		concreteSynapse.previousSynapseID = value
 
 		// Read parent synapse ID
 		dataOffset, err = utils.FileReadUint32(fileHandle, dataOffset, &value)
 		if err != nil {
-			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_READ)
-			os.Exit(errcode.ERROR_FATAL_CONFIG_READ)
+			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_READ, synapsesGroup.fileName, err.Error())
+			return
 		}
 		concreteSynapse.parentSynapseID = value
 
 		// Read max child list size
 		dataOffset, err = utils.FileReadUint32(fileHandle, dataOffset, &value)
 		if err != nil {
-			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_READ)
-			os.Exit(errcode.ERROR_FATAL_CONFIG_READ)
+			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_READ, synapsesGroup.fileName, err.Error())
+			return
 		}
 		concreteSynapse.maxChildListSize = value
 
@@ -211,8 +213,8 @@ func (synapsesGroup *S_SynapsesGroup) LoadFromFile(fileHandle *os.File, dataOffs
 		for i := uint32(0); i < concreteSynapse.maxChildListSize; i++ {
 			dataOffset, err = utils.FileReadUint32(fileHandle, dataOffset, &value)
 			if err != nil {
-				errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_READ)
-				os.Exit(errcode.ERROR_FATAL_CONFIG_READ)
+				errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_READ, synapsesGroup.fileName, err.Error())
+				return
 			}
 			if value != 0 {
 				concreteSynapse.childSynapseIDList = append(concreteSynapse.childSynapseIDList, value)

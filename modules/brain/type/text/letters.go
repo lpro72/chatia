@@ -44,12 +44,14 @@ func LetterCell_GetWordFromLastSynapse(lastSynapse interfaces.I_Synapse) string 
 /*******************
 * LetterCell_Search
 *******************/
-func LetterCell_Search(brainConfig interfaces.I_BrainConfig, letter rune, parentSynapse interfaces.I_Synapse) (interfaces.I_Synapse, interfaces.I_Cell) {
+func LetterCell_Search(brainConfig interfaces.I_BrainConfig, letter rune, letterSynapse interfaces.I_Synapse) (interfaces.I_Synapse, interfaces.I_Cell) {
 
-	currentSynapse := parentSynapse.GetFirstChild()
+	currentSynapse := letterSynapse.GetFirstChild()
+	var currentCell interfaces.I_Cell = nil
 
+	// Search for letter in the format synapse
 	for currentSynapse != nil {
-		currentCell := currentSynapse.GetCell()
+		currentCell = currentSynapse.GetCell()
 		letterData := templates.GetDataFromCell[*S_LetterCellData](currentCell)
 		if letterData.Letter == letter {
 			return currentSynapse, currentCell
@@ -58,9 +60,10 @@ func LetterCell_Search(brainConfig interfaces.I_BrainConfig, letter rune, parent
 	}
 
 	// New cell must be created
-	currentCell := LetterCell_Create(brainConfig, letter)
-	println("Created new letter cell for letter:", string(letter))
-	return data.CreateSynapse(brainConfig, parentSynapse, currentCell, 26), currentCell
+	currentCell = LetterCell_Create(brainConfig, letter)
+	currentSynapse = data.CreateSynapse(brainConfig, letterSynapse, currentCell, 0)
+
+	return currentSynapse, currentCell
 }
 
 /*******************

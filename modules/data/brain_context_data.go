@@ -5,6 +5,7 @@ package data
 *******************/
 import (
 	"chatia/modules/interfaces"
+	"chatia/modules/utils"
 )
 
 /*******************
@@ -18,6 +19,7 @@ type S_BrainContext struct {
 	firstSynapseID uint32
 	brainConfig    interfaces.I_BrainConfig
 	name           string
+	MemoryAccess   interfaces.I_Lock
 
 	// file
 	dataOffset int64
@@ -33,13 +35,20 @@ func (brainContext *S_BrainContext) Initialize(brainConfig interfaces.I_BrainCon
 	brainContext.name = name
 	brainContext.brainConfig = brainConfig
 	brainContext.firstSynapseID = firstSynapseID
+	brainContext.MemoryAccess = &utils.S_Lock{}
 }
 
 func (brainContext *S_BrainContext) GetName() string {
+	brainContext.MemoryAccess.Lock()
+	defer brainContext.MemoryAccess.Unlock()
+
 	return brainContext.name
 }
 
 func (brainContext *S_BrainContext) GetFirstSynapseID() uint32 {
+	brainContext.MemoryAccess.Lock()
+	defer brainContext.MemoryAccess.Unlock()
+
 	return brainContext.firstSynapseID
 }
 
@@ -48,11 +57,17 @@ func (brainContext *S_BrainContext) GetFirstSynapse() interfaces.I_Synapse {
 }
 
 func (brainContext *S_BrainContext) SetFirstSynapse(firstSynapse interfaces.I_Synapse) {
+	brainContext.MemoryAccess.Lock()
+	defer brainContext.MemoryAccess.Unlock()
+
 	brainContext.firstSynapseID = firstSynapse.GetID()
 	brainContext.brainConfig.GetBrainContextManagement().UpdateToFile(brainContext)
 }
 
 func (brainContext *S_BrainContext) GetFirstCellID() uint32 {
+	brainContext.MemoryAccess.Lock()
+	defer brainContext.MemoryAccess.Unlock()
+
 	cell := brainContext.GetFirstCell()
 	if cell == nil {
 		return 0
@@ -61,6 +76,9 @@ func (brainContext *S_BrainContext) GetFirstCellID() uint32 {
 }
 
 func (brainContext *S_BrainContext) GetFirstCell() interfaces.I_Cell {
+	brainContext.MemoryAccess.Lock()
+	defer brainContext.MemoryAccess.Unlock()
+
 	synapse := brainContext.GetFirstSynapse()
 	if synapse == nil {
 		return nil
@@ -73,6 +91,9 @@ func (brainContext *S_BrainContext) GetFirstCell() interfaces.I_Cell {
 }
 
 func (brainContext *S_BrainContext) SetFirstCell(firstCell interfaces.I_Cell, maxChildListSize uint32) {
+	brainContext.MemoryAccess.Lock()
+	defer brainContext.MemoryAccess.Unlock()
+
 	synapse := brainContext.GetFirstSynapse()
 	if synapse == nil {
 		synapse = CreateSynapse(brainContext.brainConfig, nil, firstCell, maxChildListSize)
@@ -83,14 +104,23 @@ func (brainContext *S_BrainContext) SetFirstCell(firstCell interfaces.I_Cell, ma
 }
 
 func (brainContext *S_BrainContext) SetDumpMemoryFunction(dumpMemory func(brainContext interfaces.I_BrainContext)) {
+	brainContext.MemoryAccess.Lock()
+	defer brainContext.MemoryAccess.Unlock()
+
 	brainContext.dumpMemory = dumpMemory
 }
 
 func (brainContext *S_BrainContext) SetLearnFunction(learn func(brainContext interfaces.I_BrainContext, data []byte)) {
+	brainContext.MemoryAccess.Lock()
+	defer brainContext.MemoryAccess.Unlock()
+
 	brainContext.learn = learn
 }
 
 func (brainContext *S_BrainContext) SetExecFunction(exec func(brainContext interfaces.I_BrainContext, command string) string) {
+	brainContext.MemoryAccess.Lock()
+	defer brainContext.MemoryAccess.Unlock()
+
 	brainContext.exec = exec
 }
 
@@ -115,13 +145,22 @@ func (brainContext *S_BrainContext) CallDumpMemoryFunction() {
 }
 
 func (brainContext *S_BrainContext) GetBrainConfig() interfaces.I_BrainConfig {
+	brainContext.MemoryAccess.Lock()
+	defer brainContext.MemoryAccess.Unlock()
+
 	return brainContext.brainConfig
 }
 
 func (brainContext *S_BrainContext) SetFileOffset(offset int64) {
+	brainContext.MemoryAccess.Lock()
+	defer brainContext.MemoryAccess.Unlock()
+
 	brainContext.dataOffset = offset
 }
 
 func (brainContext *S_BrainContext) GetFileOffset() int64 {
+	brainContext.MemoryAccess.Lock()
+	defer brainContext.MemoryAccess.Unlock()
+
 	return brainContext.dataOffset
 }

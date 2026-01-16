@@ -45,6 +45,7 @@ func LearnText(brainContext interfaces.I_BrainContext, text string) {
 	cellsGroupManagement := brainConfig.GetCellsGroupManagament()
 	synapsesGroupManagement := brainConfig.GetSynapsesGroupManagement()
 	textCell := brainContext.GetFirstCell()
+
 	var currentCell interfaces.I_Cell = nil
 	var currentSynapse interfaces.I_Synapse = nil
 	var firstSynapse interfaces.I_Synapse = nil
@@ -54,16 +55,16 @@ func LearnText(brainContext interfaces.I_BrainContext, text string) {
 	textData := templates.GetDataFromCell[*S_TextData](textCell)
 	wordSynapse := synapsesGroupManagement.GetSynapseFromID(textData.WordSynapseID)
 	letterSynapse := synapsesGroupManagement.GetSynapseFromID(textData.LetterSynapseID)
+
 	// initialisation
 	if wordSynapse == nil {
 		wordSynapse = data.CreateSynapse(brainConfig, nil, nil, 1)
 		textData.WordSynapseID = wordSynapse.GetID()
 	}
 	if letterSynapse == nil {
-		letterSynapse = data.CreateSynapse(brainConfig, nil, nil, 26)
+		letterSynapse = data.CreateSynapse(brainConfig, nil, nil, 0)
 		textData.LetterSynapseID = letterSynapse.GetID()
 	}
-
 	for _, r := range text {
 		// New word
 		if !unicode.IsLetter(r) {
@@ -80,6 +81,7 @@ func LearnText(brainContext interfaces.I_BrainContext, text string) {
 				wordData := templates.GetDataFromCell[*S_WordCellData](wordCell)
 				wordData.Count += 1
 			}
+			currentSynapse = nil
 			currentCell = nil
 			firstSynapse = nil
 			continue
@@ -91,7 +93,7 @@ func LearnText(brainContext interfaces.I_BrainContext, text string) {
 			currentSynapse = letterSynapse
 		}
 
-		currentSynapse, currentCell := LetterCell_Search(brainConfig, unicode.ToLower(r), currentSynapse)
+		currentSynapse, currentCell = LetterCell_Search(brainConfig, unicode.ToLower(r), currentSynapse)
 		letterData = templates.GetDataFromCell[*S_LetterCellData](currentCell)
 		letterData.Count += 1
 		if firstSynapse == nil {

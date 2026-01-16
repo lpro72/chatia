@@ -53,7 +53,7 @@ func (currentSynapse *S_Synapse) GetFirstChild() interfaces.I_Synapse {
 func (currentSynapse *S_Synapse) addChildSynapse(newSynapse *S_Synapse) {
 	var childSynapse interfaces.I_Synapse = nil
 	if currentSynapse.childSynapseIDList == nil {
-		currentSynapse.childSynapseIDList = make([]uint32, 0, 10)
+		currentSynapse.childSynapseIDList = make([]uint32, 0, currentSynapse.maxChildListSize)
 	} else {
 		id := len(currentSynapse.childSynapseIDList) - 1
 		childSynapse = currentSynapse.brainConfig.GetSynapsesGroupManagement().GetSynapseFromID(currentSynapse.childSynapseIDList[id])
@@ -84,6 +84,21 @@ func (currentSynapse *S_Synapse) SetScore(score uint32) {
 	currentSynapse.score = score
 }
 
+func (currentSynapse *S_Synapse) Duplicate() interfaces.I_Synapse {
+	newSynapse := new(S_Synapse)
+	newSynapse.brainConfig = currentSynapse.brainConfig
+	newSynapse.synapseID = currentSynapse.brainConfig.GetSynapsesGroupManagement().GetNextSynapseID()
+	newSynapse.cellID = currentSynapse.cellID
+	newSynapse.score = currentSynapse.score
+	newSynapse.maxChildListSize = currentSynapse.maxChildListSize
+	// Note: parent/child/next/previous are not duplicated
+	currentSynapse.brainConfig.GetSynapsesGroupManagement().AppendSynapseToGroup(newSynapse)
+	return newSynapse
+}
+
+/*******************
+* DumpCell
+*******************/
 func (currentSynapse *S_Synapse) DumpCell(indentation []byte) {
 	println("synapse_data/DumpCell")
 	// 	cellData := currentSynapse.GetData()

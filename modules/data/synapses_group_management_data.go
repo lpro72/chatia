@@ -4,7 +4,6 @@ package data
 * Import
 *******************/
 import (
-	"fmt"
 	"io"
 	"os"
 
@@ -18,6 +17,7 @@ import (
 *******************/
 type S_SynapsesGroupManagement struct {
 	fileHandle *os.File
+	fileName   string
 
 	synapsesGroupList  []interfaces.I_SynapsesGroup
 	synapsesGroupCount uint32
@@ -35,7 +35,8 @@ func (synapsesGroupManagement *S_SynapsesGroupManagement) Initialize(brainConfig
 	synapsesGroupManagement.MemoryAccess = &utils.S_Lock{}
 	synapsesGroupManagement.synapsesGroupList = make([]interfaces.I_SynapsesGroup, 0)
 	synapsesGroupManagement.synapsesGroupCount = 0
-	synapsesGroupManagement.fileHandle = utils.ReadConfigFile(brainConfig, "synapses_group_management.brn", synapsesGroupManagement.LoadFromFile)
+	synapsesGroupManagement.fileName = "synapses_group_management.brn"
+	synapsesGroupManagement.fileHandle = utils.ReadConfigFile(brainConfig, synapsesGroupManagement.fileName, synapsesGroupManagement.LoadFromFile)
 }
 
 func (synapsesGroupManagement *S_SynapsesGroupManagement) addGroupToFile() {
@@ -46,7 +47,8 @@ func (synapsesGroupManagement *S_SynapsesGroupManagement) addGroupToFile() {
 
 	_, err := utils.FileWriteUint32(synapsesGroupManagement.fileHandle, 4, uint32(synapsesGroupManagement.synapsesGroupCount))
 	if err != nil {
-		fmt.Println("Error writing group count:", err)
+		errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_WRITE, synapsesGroupManagement.fileName, err.Error())
+		return
 	}
 }
 
@@ -152,8 +154,8 @@ func (synapsesGroupManagement *S_SynapsesGroupManagement) LoadFromFile(fileHandl
 			if err == io.EOF {
 				return
 			}
-			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_READ)
-			os.Exit(errcode.ERROR_FATAL_CONFIG_READ)
+			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_READ, synapsesGroupManagement.fileName, err.Error())
+			return
 		}
 
 		for i := uint32(0); i < synapsesGroupSize; i++ {

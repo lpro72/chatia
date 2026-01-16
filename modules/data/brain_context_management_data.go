@@ -21,7 +21,9 @@ type S_BrainContextManagement struct {
 
 	// File management
 	fileHandle *os.File
+	fileName   string
 
+	// Lock
 	MemoryAccess interfaces.I_Lock
 }
 
@@ -31,7 +33,8 @@ type S_BrainContextManagement struct {
 func (brainContextManagement *S_BrainContextManagement) initialize(brainConfig interfaces.I_BrainConfig) {
 	brainContextManagement.contextList = make(map[string]interfaces.I_BrainContext)
 	brainContextManagement.MemoryAccess = &utils.S_Lock{}
-	brainContextManagement.fileHandle = utils.ReadConfigFile(brainConfig, "context.brn", brainContextManagement.LoadFromFile)
+	brainContextManagement.fileName = "context.brn"
+	brainContextManagement.fileHandle = utils.ReadConfigFile(brainConfig, brainContextManagement.fileName, brainContextManagement.LoadFromFile)
 	brainContextManagement.loaded = true
 }
 
@@ -40,8 +43,12 @@ func (brainContextManagement *S_BrainContextManagement) appendToFile(context int
 		return
 	}
 
+	brainContextManagement.Lock()
+	defer brainContextManagement.Unlock()
+
 	dataOffset, err := utils.FileGetEndOffset(brainContextManagement.fileHandle)
 	if err != nil {
+		errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_FILE_WRITE, brainContextManagement.fileName, err.Error())
 		return
 	}
 	context.SetFileOffset(dataOffset)
@@ -50,6 +57,7 @@ func (brainContextManagement *S_BrainContextManagement) appendToFile(context int
 	name := context.GetName()
 	_, err = utils.FileWriteString(brainContextManagement.fileHandle, -1, name)
 	if err != nil {
+		errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_FILE_WRITE, brainContextManagement.fileName, err.Error())
 		return
 	}
 
@@ -57,6 +65,7 @@ func (brainContextManagement *S_BrainContextManagement) appendToFile(context int
 	firstCellID := context.GetFirstCellID()
 	_, err = utils.FileWriteUint32(brainContextManagement.fileHandle, -1, firstCellID)
 	if err != nil {
+		errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_FILE_WRITE, brainContextManagement.fileName, err.Error())
 		return
 	}
 }
@@ -98,6 +107,7 @@ func (brainContextManagement *S_BrainContextManagement) UpdateToFile(context int
 	name := context.GetName()
 	dataOffset, err := utils.FileWriteString(brainContextManagement.fileHandle, dataOffset, name)
 	if err != nil {
+		errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_FILE_WRITE, brainContextManagement.fileName, err.Error())
 		return
 	}
 
@@ -105,6 +115,7 @@ func (brainContextManagement *S_BrainContextManagement) UpdateToFile(context int
 	firstCellID := context.GetFirstCellID()
 	dataOffset, err = utils.FileWriteUint32(brainContextManagement.fileHandle, dataOffset, firstCellID)
 	if err != nil {
+		errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_FILE_WRITE, brainContextManagement.fileName, err.Error())
 		return
 	}
 }
@@ -124,16 +135,16 @@ func (brainContextManagement *S_BrainContextManagement) LoadFromFile(fileHandle 
 			if err == io.EOF {
 				break
 			}
-			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_READ)
-			os.Exit(errcode.ERROR_FATAL_CONFIG_READ)
+			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_READ, brainContextManagement.fileName, err.Error())
+			return
 		}
 
 		// Read first synapse ID
 		synapseID := uint32(0)
 		dataOffset, err = utils.FileReadUint32(fileHandle, dataOffset, &synapseID)
 		if err != nil {
-			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_READ)
-			os.Exit(errcode.ERROR_FATAL_CONFIG_READ)
+			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_READ, brainContextManagement.fileName, err.Error())
+			return
 		}
 		// Create the brain context
 		brainContext := brainContextManagement.CreateNewBrainContext(brainConfigInterface, name, synapseID)

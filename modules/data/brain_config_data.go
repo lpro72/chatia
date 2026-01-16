@@ -107,11 +107,9 @@ func (brainConfig *S_BrainConfig) LoadFromFile(fileHandle *os.File, dataOffset i
 }
 
 func (brainConfig *S_BrainConfig) Close() {
-	brainConfig.Lock()
-	defer brainConfig.Unlock()
-
 	brainConfig.brainContextManagement.Close()
 	brainConfig.cellsGroupManagement.Close()
+	brainConfig.synapsesGroupManagement.Close()
 }
 
 /*******************

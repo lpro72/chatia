@@ -25,7 +25,9 @@ type s_CellType struct {
 * s_CellTypeManagement
 *******************/
 type s_CellTypeManagement struct {
-	cellTypeFileHandle     *os.File
+	cellTypeFileHandle *os.File
+	fileName           string
+
 	registeredCellTypeList map[string]s_CellType
 	nextCellTypeID         uint32
 	MemoryAccess           interfaces.I_Lock
@@ -53,6 +55,7 @@ func (cellTypeManagement *s_CellTypeManagement) appendToFile(cell s_CellType) bo
 	// Write the brain context name
 	_, err := utils.FileWriteString(cellTypeManagement.cellTypeFileHandle, -1, cell.name)
 	if err != nil {
+		errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_FILE_WRITE, cellTypeManagement.fileName, err.Error())
 		return false
 	}
 	_, err = utils.FileWriteUint32(cellTypeManagement.cellTypeFileHandle, -1, uint32(cell.id))
@@ -146,14 +149,14 @@ func (cellTypeManagement *s_CellTypeManagement) LoadFromFile(fileHandle *os.File
 			if err == io.EOF {
 				break
 			}
-			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_READ)
-			os.Exit(errcode.ERROR_FATAL_CONFIG_READ)
+			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_READ, cellTypeManagement.fileName, err.Error())
+			return
 		}
 
 		dataOffset, err = utils.FileReadUint32(fileHandle, dataOffset, &cellTypeID)
 		if err != nil {
-			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_READ)
-			os.Exit(errcode.ERROR_FATAL_CONFIG_READ)
+			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_READ, cellTypeManagement.fileName, err.Error())
+			return
 		}
 
 		if cellTypeID >= cellTypeManagement.nextCellTypeID {

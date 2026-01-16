@@ -4,13 +4,9 @@ package data
 * Import
 *******************/
 import (
-
-	// "io"
-	"fmt"
 	"io"
 	"os"
 
-	// "chatia/modules/errcode"
 	"chatia/modules/errcode"
 	"chatia/modules/interfaces"
 	"chatia/modules/utils"
@@ -21,6 +17,7 @@ import (
 *******************/
 type S_CellsGroupManagement struct {
 	fileHandle *os.File
+	fileName   string
 
 	cellsGroupList  []interfaces.I_CellsGroup
 	cellsGroupCount uint32
@@ -38,7 +35,8 @@ func (cellsGroupManagement *S_CellsGroupManagement) Initialize(brainConfig inter
 	cellsGroupManagement.MemoryAccess = &utils.S_Lock{}
 	cellsGroupManagement.cellsGroupList = make([]interfaces.I_CellsGroup, 0)
 	cellsGroupManagement.cellsGroupCount = 0
-	cellsGroupManagement.fileHandle = utils.ReadConfigFile(brainConfig, "cells_group_management.brn", cellsGroupManagement.LoadFromFile)
+	cellsGroupManagement.fileName = "cells_group_management.brn"
+	cellsGroupManagement.fileHandle = utils.ReadConfigFile(brainConfig, cellsGroupManagement.fileName, cellsGroupManagement.LoadFromFile)
 }
 
 func (cellsGroupManagement *S_CellsGroupManagement) addGroupeToFile() {
@@ -47,9 +45,13 @@ func (cellsGroupManagement *S_CellsGroupManagement) addGroupeToFile() {
 		return
 	}
 
+	cellsGroupManagement.Lock()
+	defer cellsGroupManagement.Unlock()
+
 	_, err := utils.FileWriteUint32(cellsGroupManagement.fileHandle, 4, uint32(cellsGroupManagement.cellsGroupCount))
 	if err != nil {
-		fmt.Println("Error writing group count:", err)
+		errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_FILE_WRITE, cellsGroupManagement.fileName, err.Error())
+		return
 	}
 }
 
@@ -88,10 +90,12 @@ func (cellsGroupManamgement *S_CellsGroupManagement) GetCellFromID(cellID uint32
 	cellIDInGroup := cellID % 1024
 
 	if groupeID > uint32(cellsGroupListCount-1) {
+		errcode.PrintMsgFromErrorCode(errcode.WARNING_CELL_NOT_FOUND, cellID)
 		return nil
 	}
 	cellGroup := cellsGroupManamgement.cellsGroupList[groupeID]
 	if cellIDInGroup >= cellGroup.GetCellCount() {
+		errcode.PrintMsgFromErrorCode(errcode.WARNING_CELL_NOT_FOUND, cellID)
 		return nil
 	}
 	return cellGroup.GetCellFromID(cellIDInGroup)
@@ -155,8 +159,8 @@ func (cellsGroupManagement *S_CellsGroupManagement) LoadFromFile(fileHandle *os.
 			if err == io.EOF {
 				return
 			}
-			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_READ)
-			os.Exit(errcode.ERROR_FATAL_CONFIG_READ)
+			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_READ, cellsGroupManagement.fileName, err.Error())
+			return
 		}
 
 		for i := uint32(0); i < cellsGroupSize; i++ {

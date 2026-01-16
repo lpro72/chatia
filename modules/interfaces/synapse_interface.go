@@ -13,4 +13,5 @@ type I_Synapse interface {
 	GetCellID() uint32
 	GetScore() uint32
 	SetScore(score uint32)
+	Duplicate() I_Synapse
 }

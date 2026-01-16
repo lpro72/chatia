@@ -24,6 +24,7 @@ type S_CellsGroup struct {
 	CellList    []interfaces.I_Cell
 
 	fileHandle *os.File
+	fileName   string
 	loaded     bool
 	dataOffset int64
 
@@ -45,8 +46,13 @@ func (cellsGroup *S_CellsGroup) LoadCellsGroupFromFile() {
 	if cellsGroup.loaded {
 		return
 	}
+
+	cellsGroup.Lock()
+	defer cellsGroup.Unlock()
+
 	cellsGroup.loaded = true
-	cellsGroup.fileHandle = utils.ReadConfigFile(cellsGroup.brainConfig, fmt.Sprintf("cells_group_%d.brn", cellsGroup.CellgroupID), cellsGroup.LoadFromFile)
+	cellsGroup.fileName = fmt.Sprintf("cells_group_%d.brn", cellsGroup.CellgroupID)
+	cellsGroup.fileHandle = utils.ReadConfigFile(cellsGroup.brainConfig, cellsGroup.fileName, cellsGroup.LoadFromFile)
 }
 
 func (cellsGroup *S_CellsGroup) appendCellToFile(cell interfaces.I_Cell) {
@@ -54,24 +60,31 @@ func (cellsGroup *S_CellsGroup) appendCellToFile(cell interfaces.I_Cell) {
 		return
 	}
 
+	cellsGroup.Lock()
+	defer cellsGroup.Unlock()
+
 	dataOffset, err := utils.FileGetEndOffset(cellsGroup.fileHandle)
 	if err != nil {
+		errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_FILE_WRITE, cellsGroup.fileName, err.Error())
 		return
 	}
 	cellsGroup.dataOffset = dataOffset
 
 	dataOffset, err = utils.FileWriteUint32(cellsGroup.fileHandle, dataOffset, cell.GetID())
 	if err != nil {
+		errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_FILE_WRITE, cellsGroup.fileName, err.Error())
 		return
 	}
 
 	dataOffset, err = utils.FileWriteUint32(cellsGroup.fileHandle, dataOffset, cell.GetCellType())
 	if err != nil {
+		errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_FILE_WRITE, cellsGroup.fileName, err.Error())
 		return
 	}
 
 	dataOffset, err = utils.FileWriteData(cellsGroup.fileHandle, dataOffset, cell.GetSerializedData())
 	if err != nil {
+		errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_FILE_WRITE, cellsGroup.fileName, err.Error())
 		return
 	}
 }
@@ -81,11 +94,19 @@ func (cellsGroup *S_CellsGroup) appendCellToFile(cell interfaces.I_Cell) {
 *******************/
 func (cellsGroup *S_CellsGroup) GetCellCount() uint32 {
 	cellsGroup.LoadCellsGroupFromFile()
+
+	cellsGroup.Lock()
+	defer cellsGroup.Unlock()
+
 	return cellsGroup.CellCount
 }
 
 func (cellsGroup *S_CellsGroup) AppendCellToGroup(cell interfaces.I_Cell) {
 	cellsGroup.LoadCellsGroupFromFile()
+
+	cellsGroup.Lock()
+	defer cellsGroup.Unlock()
+
 	cellsGroup.CellList = append(cellsGroup.CellList, cell)
 	cellsGroup.CellCount += 1
 
@@ -96,6 +117,9 @@ func (cellsGroup *S_CellsGroup) AppendCellToGroup(cell interfaces.I_Cell) {
 func (cellsGroup *S_CellsGroup) GetCellFromID(cellID uint32) interfaces.I_Cell {
 	cellsGroup.LoadCellsGroupFromFile()
 
+	cellsGroup.Lock()
+	defer cellsGroup.Unlock()
+
 	cell := cellsGroup.CellList[cellID]
 	return cell
 }
@@ -104,6 +128,9 @@ func (cellsGroup *S_CellsGroup) GetCellFromID(cellID uint32) interfaces.I_Cell {
 *  Functions for the interface I_File
 *******************/
 func (cellsGroup *S_CellsGroup) LoadFromFile(fileHandle *os.File, dataOffset int64, brainConfig interfaces.I_BrainConfig, version uint32) {
+	cellsGroup.Lock()
+	defer cellsGroup.Unlock()
+
 	for {
 		// Read the cell group name
 		var cellID uint32
@@ -116,23 +143,23 @@ func (cellsGroup *S_CellsGroup) LoadFromFile(fileHandle *os.File, dataOffset int
 			if err == io.EOF {
 				return
 			}
-			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_READ)
-			os.Exit(errcode.ERROR_FATAL_CONFIG_READ)
+			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_READ, cellsGroup.fileName, err.Error())
+			return
 		}
 
 		// Read cell type
 		dataOffset, err = utils.FileReadUint32(fileHandle, dataOffset, &cellType)
 		if err != nil {
-			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_READ)
-			os.Exit(errcode.ERROR_FATAL_CONFIG_READ)
+			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_READ, cellsGroup.fileName, err.Error())
+			return
 		}
 
 		// Read cell data
 		var dataBuffer []byte
 		dataOffset, err = utils.FileReadData(fileHandle, dataOffset, &dataBuffer)
 		if err != nil {
-			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_READ)
-			os.Exit(errcode.ERROR_FATAL_CONFIG_READ)
+			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_READ, cellsGroup.fileName, err.Error())
+			return
 		}
 		cellData := CellType_CreateCellDataFromSerializedData(cellType, dataBuffer)
 		cell := CreateCell(brainConfig, cellData, cellType)
