@@ -4,8 +4,8 @@ package interfaces
 * Interface
 *******************/
 type I_SynapsesGroupManagement interface {
-	GetSynapsesGroupsCount() int
-	GetSynapsesCount(synapseID int) int
+	GetSynapsesGroupsCount() uint32
+	GetSynapsesCount() uint32
 	GetNextSynapseID() uint32
 	AppendSynapseToGroup(synapse I_Synapse) uint32
 	GetSynapseFromID(synapseID uint32) I_Synapse

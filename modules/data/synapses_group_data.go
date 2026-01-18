@@ -58,6 +58,7 @@ func (synapsesGroup *S_SynapsesGroup) appendSynapseToFile(synapse interfaces.I_S
 
 	dataOffset, err := utils.FileGetEndOffset(synapsesGroup.fileHandle)
 	if err != nil {
+		errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_WRITE, synapsesGroup.fileName, err.Error())
 		return
 	}
 	synapsesGroup.dataOffset = dataOffset
@@ -115,11 +116,18 @@ func (synapsesGroup *S_SynapsesGroup) appendSynapseToFile(synapse interfaces.I_S
 *******************/
 func (synapsesGroup *S_SynapsesGroup) GetSynapsesCount() uint32 {
 	synapsesGroup.LoadSynapsesGroupFromFile()
+
+	synapsesGroup.Lock()
+	defer synapsesGroup.Unlock()
+
 	return synapsesGroup.SynapseCount
 }
 
 func (synapsesGroup *S_SynapsesGroup) AppendSynapseToGroup(synapse interfaces.I_Synapse) {
 	synapsesGroup.LoadSynapsesGroupFromFile()
+	synapsesGroup.Lock()
+	defer synapsesGroup.Unlock()
+
 	synapsesGroup.SynapseList = append(synapsesGroup.SynapseList, synapse)
 	synapsesGroup.SynapseCount += 1
 
@@ -130,6 +138,12 @@ func (synapsesGroup *S_SynapsesGroup) AppendSynapseToGroup(synapse interfaces.I_
 func (synapsesGroup *S_SynapsesGroup) GetSynapseFromID(synapseID uint32) interfaces.I_Synapse {
 	synapsesGroup.LoadSynapsesGroupFromFile()
 
+	synapsesGroup.Lock()
+	defer synapsesGroup.Unlock()
+
+	if synapseID >= uint32(len(synapsesGroup.SynapseList)) {
+		return nil
+	}
 	synapse := synapsesGroup.SynapseList[synapseID]
 	return synapse
 }
@@ -146,7 +160,7 @@ func (synapsesGroup *S_SynapsesGroup) LoadFromFile(fileHandle *os.File, dataOffs
 		synapse := CreateSynapse(brainConfig, nil, nil, 0)
 		concreteSynapse, ok := synapse.(*S_Synapse)
 		if !ok {
-			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CELL_CREATE)
+			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_SYNAPSE_CREATE)
 			return
 		}
 
@@ -159,7 +173,10 @@ func (synapsesGroup *S_SynapsesGroup) LoadFromFile(fileHandle *os.File, dataOffs
 			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CONFIG_READ, synapsesGroup.fileName, err.Error())
 			return
 		}
-		concreteSynapse.synapseID = value
+		if value != concreteSynapse.synapseID {
+			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_SYNAPSE_INVALID_DATA)
+			os.Exit(errcode.ERROR_FATAL_SYNAPSE_INVALID_DATA)
+		}
 
 		// Read cell ID
 		dataOffset, err = utils.FileReadUint32(fileHandle, dataOffset, &value)

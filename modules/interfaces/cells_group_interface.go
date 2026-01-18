@@ -5,7 +5,7 @@ package interfaces
 *******************/
 type I_CellsGroup interface {
 	AppendCellToGroup(cell I_Cell)
-	GetCellCount() uint32
+	GetCellsCount() uint32
 	GetCellFromID(cellID uint32) I_Cell
 
 	// File Management

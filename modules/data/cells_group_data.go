@@ -92,7 +92,7 @@ func (cellsGroup *S_CellsGroup) appendCellToFile(cell interfaces.I_Cell) {
 /*******************
 *  Functions for the interface I_CellsGroup
 *******************/
-func (cellsGroup *S_CellsGroup) GetCellCount() uint32 {
+func (cellsGroup *S_CellsGroup) GetCellsCount() uint32 {
 	cellsGroup.LoadCellsGroupFromFile()
 
 	cellsGroup.Lock()
@@ -120,6 +120,9 @@ func (cellsGroup *S_CellsGroup) GetCellFromID(cellID uint32) interfaces.I_Cell {
 	cellsGroup.Lock()
 	defer cellsGroup.Unlock()
 
+	if cellID >= uint32(len(cellsGroup.CellList)) {
+		return nil
+	}
 	cell := cellsGroup.CellList[cellID]
 	return cell
 }
@@ -163,7 +166,10 @@ func (cellsGroup *S_CellsGroup) LoadFromFile(fileHandle *os.File, dataOffset int
 		}
 		cellData := CellType_CreateCellDataFromSerializedData(cellType, dataBuffer)
 		cell := CreateCell(brainConfig, cellData, cellType)
-		cellsGroup.AppendCellToGroup(cell)
+		if cell.GetID() != cellID {
+			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_CELL_INVALID_DATA)
+			os.Exit(errcode.ERROR_FATAL_CELL_INVALID_DATA)
+		}
 	}
 }
 

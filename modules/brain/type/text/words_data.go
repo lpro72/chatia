@@ -26,10 +26,8 @@ type S_WordCellData struct {
 /*******************
 * Interface I_CellData
 *******************/
-func (wordData *S_WordCellData) DumpCell(currentCell interfaces.I_Cell, indentation []byte) {
-	println("text_words/DumpCell")
-	// letterData := templates.GetDataFromCell[*S_LetterCellData](wordData.LastLetterCell)
-	// fmt.Printf("%sLetter : %c, count : %d, word : %s, Word Count : %d\n", indentation, letterData.Letter, letterData.Count, wordData.Word, wordData.Count)
+func (wordData *S_WordCellData) DumpData() {
+	fmt.Printf("Word Count: %d, FirstLetterSynapseID: %d, LastLetterSynapseID: %d, Word: %s\n", wordData.Count, wordData.FirstLetterSynapseID, wordData.LastLetterSynapseID, wordData.Word)
 }
 
 func (wordData *S_WordCellData) GetSerializedData() []byte {

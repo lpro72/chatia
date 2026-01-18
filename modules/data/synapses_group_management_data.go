@@ -87,44 +87,35 @@ func (synapsesGroupManagement *S_SynapsesGroupManagement) GetSynapseFromID(synap
 	synapseIDInGroup := synapseID % 1024
 
 	if groupeID > uint32(synapsesGroupListCount-1) {
+		errcode.PrintMsgFromErrorCode(errcode.WARNING_SYNAPSE_NOT_FOUND, synapseID)
 		return nil
 	}
 	synapseGroup := synapsesGroupManagement.synapsesGroupList[groupeID]
 	if synapseIDInGroup >= synapseGroup.GetSynapsesCount() {
+		errcode.PrintMsgFromErrorCode(errcode.WARNING_SYNAPSE_NOT_FOUND, synapseID)
 		return nil
 	}
 	return synapseGroup.GetSynapseFromID(synapseIDInGroup)
 }
 
-func (synapsesGroupManagement *S_SynapsesGroupManagement) GetSynapsesGroupsCount() int {
+func (synapsesGroupManagement *S_SynapsesGroupManagement) GetSynapsesGroupsCount() uint32 {
 	synapsesGroupManagement.Lock()
 	defer synapsesGroupManagement.Unlock()
 
-	println("synapses_group_management_data/GetSynapsesGroupsCount")
-	// 	return len(synapsesGroupManagement.synapsesGroupList)
-	return 0
+	return uint32(len(synapsesGroupManagement.synapsesGroupList))
 }
 
-func (synapsesGroupManagement *S_SynapsesGroupManagement) GetSynapsesCount(groupID int) int {
+func (synapsesGroupManagement *S_SynapsesGroupManagement) GetSynapsesCount() uint32 {
 	synapsesGroupManagement.Lock()
 	defer synapsesGroupManagement.Unlock()
 
-	println("synapses_group_management_data/GetSynapsesCount")
-	// 	if groupID >= 0 && groupID < len(synapsesGroupManagement.synapseGroupList) {
-	// 		return synapsesGroupManagement.synapseGroupList[groupID].SynapseCount
-	// 	}
+	var total uint32 = 0
+	for groupID := 0; groupID < len(synapsesGroupManagement.synapsesGroupList); groupID++ {
+		synapseGroup := synapsesGroupManagement.synapsesGroupList[groupID]
+		total += synapseGroup.GetSynapsesCount()
+	}
 
-	// 	// If groupID is -1, return the total synapse count across all groups
-	// 	if groupID == -1 {
-	// 		total := 0
-	// 		for _, group := range synapsesGroupManagement.synapseGroupList {
-	// 			total += group.SynapseCount
-	// 		}
-	// 		return total
-	// 	}
-
-	// Invalid groupID
-	return 0
+	return total
 }
 
 func (synapsesGroupManagement *S_SynapsesGroupManagement) GetNextSynapseID() uint32 {

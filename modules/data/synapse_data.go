@@ -4,6 +4,7 @@ package data
 * Import
 *******************/
 import (
+	"chatia/modules/errcode"
 	"chatia/modules/interfaces"
 )
 
@@ -60,12 +61,14 @@ func (currentSynapse *S_Synapse) addChildSynapse(newSynapse *S_Synapse) {
 	}
 	if childSynapse != nil {
 		if concreteSynapse, ok := childSynapse.(*S_Synapse); ok {
-			concreteSynapse.nextSynapseID = newSynapse.GetID()
+			concreteSynapse.nextSynapseID = newSynapse.synapseID
+		} else {
+			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_SYNAPSE_INVALID_DATA)
 		}
 		newSynapse.previousSynapseID = childSynapse.GetID()
 	}
-	currentSynapse.childSynapseIDList = append(currentSynapse.childSynapseIDList, newSynapse.GetID())
-	newSynapse.parentSynapseID = currentSynapse.GetID()
+	currentSynapse.childSynapseIDList = append(currentSynapse.childSynapseIDList, newSynapse.synapseID)
+	newSynapse.parentSynapseID = currentSynapse.synapseID
 }
 
 func (currentSynapse *S_Synapse) GetCell() interfaces.I_Cell {
@@ -97,17 +100,6 @@ func (currentSynapse *S_Synapse) Duplicate() interfaces.I_Synapse {
 }
 
 /*******************
-* DumpCell
-*******************/
-func (currentSynapse *S_Synapse) DumpCell(indentation []byte) {
-	println("synapse_data/DumpCell")
-	// 	cellData := currentSynapse.GetData()
-	// 	if cellData != nil {
-	// 		cellData.DumpCell(currentSynapse, indentation)
-	// 	}
-}
-
-/*******************
 * CreateSynapse
 *******************/
 func CreateSynapse(brainConfig interfaces.I_BrainConfig, parentSynapse interfaces.I_Synapse, cell interfaces.I_Cell, maxChildListSize uint32) interfaces.I_Synapse {
@@ -120,9 +112,12 @@ func CreateSynapse(brainConfig interfaces.I_BrainConfig, parentSynapse interface
 	}
 
 	if parentSynapse != nil {
-		if concreteSynapse, ok := parentSynapse.(*S_Synapse); ok {
-			concreteSynapse.addChildSynapse(newSynapse)
+		concreteSynapse, ok := parentSynapse.(*S_Synapse)
+		if !ok {
+			errcode.PrintMsgFromErrorCode(errcode.ERROR_FATAL_SYNAPSE_INVALID_DATA)
+			return nil
 		}
+		concreteSynapse.addChildSynapse(newSynapse)
 	}
 
 	brainConfig.GetSynapsesGroupManagement().AppendSynapseToGroup(newSynapse)

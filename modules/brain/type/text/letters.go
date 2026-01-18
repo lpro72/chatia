@@ -61,7 +61,7 @@ func LetterCell_Search(brainConfig interfaces.I_BrainConfig, letter rune, letter
 
 	// New cell must be created
 	currentCell = LetterCell_Create(brainConfig, letter)
-	currentSynapse = data.CreateSynapse(brainConfig, letterSynapse, currentCell, 0)
+	currentSynapse = data.CreateSynapse(brainConfig, letterSynapse, currentCell, 26)
 
 	return currentSynapse, currentCell
 }

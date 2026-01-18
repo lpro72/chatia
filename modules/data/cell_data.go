@@ -40,12 +40,11 @@ func (currentCell *S_Cell) GetData() interfaces.I_CellData {
 	return currentCell.cellData
 }
 
-func (currentCell *S_Cell) DumpCell(indentation []byte) {
-	println("cell_data/Dumpcell")
-	// cellData := currentCell.GetData()
-	// if cellData != nil {
-	// 	cellData.DumpCell(currentCell, indentation)
-	// }
+func (currentCell *S_Cell) DumpCell() {
+	cellData := currentCell.GetData()
+	if cellData != nil {
+		cellData.DumpData()
+	}
 }
 
 /*******************

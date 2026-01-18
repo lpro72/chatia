@@ -63,7 +63,7 @@ func (cellsGroupManagement *S_CellsGroupManagement) AppendCellToGroup(cell inter
 	defer cellsGroupManagement.Unlock()
 
 	lastCellGroupID := int32(cellsGroupManagement.cellsGroupCount) - 1
-	if lastCellGroupID == -1 || cellsGroupManagement.cellsGroupList[lastCellGroupID].GetCellCount() >= 1024 {
+	if lastCellGroupID == -1 || cellsGroupManagement.cellsGroupList[lastCellGroupID].GetCellsCount() >= 1024 {
 		newCellGroup := CellsGroup_Create(cellsGroupManagement.brainConfig, cellsGroupManagement.cellsGroupCount)
 		cellsGroupManagement.cellsGroupList = append(cellsGroupManagement.cellsGroupList, newCellGroup)
 		cellsGroupManagement.cellsGroupCount++
@@ -73,7 +73,7 @@ func (cellsGroupManagement *S_CellsGroupManagement) AppendCellToGroup(cell inter
 	cellsGroup := cellsGroupManagement.cellsGroupList[lastCellGroupID]
 	cellsGroup.AppendCellToGroup(cell)
 
-	return uint32(lastCellGroupID*1024) + cellsGroup.GetCellCount()
+	return uint32(lastCellGroupID*1024) + cellsGroup.GetCellsCount()
 }
 
 func (cellsGroupManamgement *S_CellsGroupManagement) GetCellFromID(cellID uint32) interfaces.I_Cell {
@@ -94,42 +94,30 @@ func (cellsGroupManamgement *S_CellsGroupManagement) GetCellFromID(cellID uint32
 		return nil
 	}
 	cellGroup := cellsGroupManamgement.cellsGroupList[groupeID]
-	if cellIDInGroup >= cellGroup.GetCellCount() {
+	if cellIDInGroup >= cellGroup.GetCellsCount() {
 		errcode.PrintMsgFromErrorCode(errcode.WARNING_CELL_NOT_FOUND, cellID)
 		return nil
 	}
 	return cellGroup.GetCellFromID(cellIDInGroup)
 }
 
-func (cellsGroupManamgement *S_CellsGroupManagement) GetCellGroupsCount() int {
+func (cellsGroupManamgement *S_CellsGroupManagement) GetCellGroupsCount() uint32 {
 	cellsGroupManamgement.Lock()
 	defer cellsGroupManamgement.Unlock()
 
-	println("cells_group_management_data/GetCellGroupsCount")
-	// 	return len(cellsGroupManamgement.cellGroupList)
-	return 0
+	return uint32(cellsGroupManamgement.cellsGroupCount)
 }
 
-func (cellsGroupManamgement *S_CellsGroupManagement) GetCellCount(groupID int) int {
+func (cellsGroupManamgement *S_CellsGroupManagement) GetCellsCount() uint32 {
 	cellsGroupManamgement.Lock()
 	defer cellsGroupManamgement.Unlock()
 
-	println("cells_group_management_data/GetCellCount")
-	// 	if groupID >= 0 && groupID < len(cellsGroupManamgement.cellGroupList) {
-	// 		return cellsGroupManamgement.cellGroupList[groupID].CellCount
-	// 	}
+	var total uint32 = 0
+	for _, cellGroup := range cellsGroupManamgement.cellsGroupList {
+		total += cellGroup.GetCellsCount()
+	}
 
-	// 	// If groupID is -1, return the total cell count across all groups
-	// 	if groupID == -1 {
-	// 		total := 0
-	// 		for _, group := range cellsGroupManamgement.cellGroupList {
-	// 			total += group.CellCount
-	// 		}
-	// 		return total
-	// 	}
-
-	// Invalid groupID
-	return 0
+	return total
 }
 
 func (cellsGroupManagement *S_CellsGroupManagement) GetNextCellID() uint32 {
@@ -142,7 +130,7 @@ func (cellsGroupManagement *S_CellsGroupManagement) GetNextCellID() uint32 {
 
 	lastCellGroupID := int32(cellsGroupManagement.cellsGroupCount) - 1
 	cellsGroup := cellsGroupManagement.cellsGroupList[lastCellGroupID]
-	nextCellID := uint32(lastCellGroupID*1024) + cellsGroup.GetCellCount() + 1
+	nextCellID := uint32(lastCellGroupID*1024) + cellsGroup.GetCellsCount() + 1
 	return nextCellID
 }
 

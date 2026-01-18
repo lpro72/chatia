@@ -9,5 +9,5 @@ type I_Cell interface {
 	// GetBrain() I_BrainConfig
 	GetID() uint32
 	GetCellType() uint32
-	// DumpCell(indentation []byte)
+	DumpCell()
 }

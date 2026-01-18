@@ -4,8 +4,8 @@ package interfaces
 * Interface
 *******************/
 type I_CellsGroupManagement interface {
-	GetCellGroupsCount() int
-	GetCellCount(groupID int) int
+	GetCellGroupsCount() uint32
+	GetCellsCount() uint32
 	GetNextCellID() uint32
 	AppendCellToGroup(cell I_Cell) uint32
 	GetCellFromID(cellID uint32) I_Cell

@@ -204,6 +204,13 @@ func CellType_GetTypeID(name string) uint32 {
 }
 
 /*******************
+* CellType_GetTypeName
+*******************/
+func CellType_GetTypeName(id uint32) string {
+	return (g_registeredCellTypeManagement.GetCellTypeName(id))
+}
+
+/*******************
 * CellType_Create
 *******************/
 func CellType_Create(brainConfig interfaces.I_BrainConfig) {

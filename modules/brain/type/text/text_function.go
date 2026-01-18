@@ -62,7 +62,7 @@ func LearnText(brainContext interfaces.I_BrainContext, text string) {
 		textData.WordSynapseID = wordSynapse.GetID()
 	}
 	if letterSynapse == nil {
-		letterSynapse = data.CreateSynapse(brainConfig, nil, nil, 0)
+		letterSynapse = data.CreateSynapse(brainConfig, nil, nil, 26)
 		textData.LetterSynapseID = letterSynapse.GetID()
 	}
 	for _, r := range text {
@@ -171,30 +171,22 @@ func DumpMemoryText(brainContext interfaces.I_BrainContext) {
 	if textData.LetterSynapseID != 0 {
 		letterSynapse := brainContext.GetBrainConfig().GetSynapsesGroupManagement().GetSynapseFromID(textData.LetterSynapseID)
 		for childSynapse := letterSynapse.GetNext(); childSynapse != nil; childSynapse = childSynapse.GetNext() {
-			childData := templates.GetDataFromCell[*S_LetterCellData](childSynapse.GetCell())
-			if childData == nil {
-				fmt.Printf("Empty cell\n")
-				// Return and empty cell
-				errcode.PrintMsgFromErrorCode(errcode.WARNING_CELL_INVALID_DATA, "text_function.go")
+			childCell := childSynapse.GetCell()
+			if childCell == nil {
 				continue
 			}
-			fmt.Printf("Letter: %c, Count: %d, WordCellID: %d\n", childData.Letter, childData.Count, childData.WordCellID)
-			childData.DumpCell(childSynapse.GetCell(), []byte{})
+			childCell.DumpCell()
 		}
 	}
 
 	if textData.WordSynapseID != 0 {
 		wordSynapse := brainContext.GetBrainConfig().GetSynapsesGroupManagement().GetSynapseFromID(textData.WordSynapseID)
 		for childSynapse := wordSynapse.GetNext(); childSynapse != nil; childSynapse = childSynapse.GetNext() {
-			childData := templates.GetDataFromCell[*S_WordCellData](childSynapse.GetCell())
-			if childData == nil {
-				fmt.Printf("Empty cell\n")
-				// Return and empty cell
-				errcode.PrintMsgFromErrorCode(errcode.WARNING_CELL_INVALID_DATA, "text_function.go")
+			childCell := childSynapse.GetCell()
+			if childCell == nil {
 				continue
 			}
-			fmt.Printf("Word Count: %d\n", childData.Count)
-			childData.DumpCell(childSynapse.GetCell(), []byte{})
+			childCell.DumpCell()
 		}
 	}
 }
